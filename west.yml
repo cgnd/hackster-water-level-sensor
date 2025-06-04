@@ -1,0 +1,56 @@
+# Copyright (c) 2022-2023 Golioth, Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+manifest:
+  version: 1.0
+
+  group-filter:
+    - +bsec
+
+  projects:
+    - name: golioth
+      path: modules/lib/golioth-firmware-sdk
+      revision: v0.18.1
+      url: https://github.com/golioth/golioth-firmware-sdk.git
+      west-commands: scripts/west-commands.yml
+      submodules: true
+      import:
+        file: west-ncs.yml
+        path-prefix: deps
+        name-allowlist:
+          - nrf
+          - zephyr
+          - bme68x
+          - bsec
+          - cmsis
+          - hal_nordic
+          - mbedtls
+          - mbedtls-nrf
+          - mcuboot
+          - net-tools
+          - nrfxlib
+          - oberon-psa-crypto
+          - qcbor
+          - segger
+          - tfm-mcuboot
+          - tinycrypt
+          - trusted-firmware-m
+          - zcbor
+
+    - name: golioth-zephyr-boards
+      path: deps/modules/lib/golioth-boards
+      revision: v2.0.1
+      url: https://github.com/golioth/golioth-zephyr-boards
+
+    - name: zephyr-network-info
+      path: deps/modules/lib/network-info
+      revision: v1.2.0
+      url: https://github.com/golioth/zephyr-network-info
+
+    - name: golioth-battery-monitor
+      path: deps/modules/lib/battery-monitor
+      revision: v1.0.0
+      url: https://github.com/golioth/battery-monitor
+
+  self:
+    path: app
