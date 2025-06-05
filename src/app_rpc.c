@@ -12,11 +12,6 @@ LOG_MODULE_REGISTER(app_rpc, LOG_LEVEL_DBG);
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/sys/reboot.h>
 
-#ifdef CONFIG_NETWORK_INFO
-#include <network_info.h>
-#endif
-
-#include "app_buzzer.h"
 #include "app_rpc.h"
 
 static void reboot_work_handler(struct k_work *work)
@@ -34,15 +29,6 @@ static void reboot_work_handler(struct k_work *work)
 	sys_reboot(SYS_REBOOT_COLD);
 }
 K_WORK_DEFINE(reboot_work, reboot_work_handler);
-
-static enum golioth_rpc_status on_get_network_info(zcbor_state_t *request_params_array,
-						   zcbor_state_t *response_detail_map,
-						   void *callback_arg)
-{
-	COND_CODE_1(CONFIG_NETWORK_INFO,
-		    (network_info_add_to_map(response_detail_map); return GOLIOTH_RPC_OK;),
-		    (return GOLIOTH_RPC_UNIMPLEMENTED););
-}
 
 static enum golioth_rpc_status on_set_log_level(zcbor_state_t *request_params_array,
 						zcbor_state_t *response_detail_map,
@@ -89,57 +75,6 @@ static enum golioth_rpc_status on_set_log_level(zcbor_state_t *request_params_ar
 	return GOLIOTH_RPC_OK;
 }
 
-static enum golioth_rpc_status on_play_song(zcbor_state_t *request_params_array,
-					    zcbor_state_t *response_detail_map,
-					    void *callback_arg)
-{
-#if defined(CONFIG_BOARD_THINGY91_NRF9160_NS)
-
-	bool ok;
-	char cbor_str[128];
-	struct zcbor_string str_decode = {
-		.value = cbor_str,
-		.len = 0
-	};
-
-	ok = zcbor_tstr_decode(request_params_array, &str_decode);
-	if (!ok) {
-		LOG_ERR("Failed to decode RPC string argument");
-		return GOLIOTH_RPC_INVALID_ARGUMENT;
-	}
-
-	uint8_t sbuf[str_decode.len + 1];
-
-	snprintk(sbuf, sizeof(sbuf), "%s", str_decode.value);
-	LOG_DBG("Received argument '%s' from 'play_song' RPC", sbuf);
-
-	if (strcmp(sbuf, "beep") == 0) {
-		play_beep_once();
-	} else if (strcmp(sbuf, "funkytown") == 0) {
-		play_funkytown_once();
-	} else if (strcmp(sbuf, "mario") == 0) {
-		play_mario_once();
-	} else if (strcmp(sbuf, "golioth") == 0) {
-		play_golioth_once();
-	} else {
-		LOG_ERR("'%s' is not an available song on your Thingy91", sbuf);
-
-		ok = zcbor_tstr_put_lit(response_detail_map, "unknown song") &&
-		     zcbor_tstr_put_term(response_detail_map, sbuf, sizeof(sbuf));
-		return GOLIOTH_RPC_INVALID_ARGUMENT;
-	}
-
-	ok = zcbor_tstr_put_lit(response_detail_map, "playing song") &&
-	     zcbor_tstr_put_term(response_detail_map, sbuf, sizeof(sbuf));
-	return GOLIOTH_RPC_OK;
-
-#else
-
-	return GOLIOTH_RPC_UNIMPLEMENTED;
-
-#endif /* CONFIG_BOARD_THINGY91_NRF9160_NS */
-}
-
 static enum golioth_rpc_status on_reboot(zcbor_state_t *request_params_array,
 					 zcbor_state_t *response_detail_map, void *callback_arg)
 {
@@ -162,15 +97,9 @@ void app_rpc_register(struct golioth_client *client)
 
 	int err;
 
-	err = golioth_rpc_register(rpc, "get_network_info", on_get_network_info, NULL);
-	rpc_log_if_register_failure(err);
-
 	err = golioth_rpc_register(rpc, "reboot", on_reboot, NULL);
 	rpc_log_if_register_failure(err);
 
 	err = golioth_rpc_register(rpc, "set_log_level", on_set_log_level, NULL);
-	rpc_log_if_register_failure(err);
-
-	err = golioth_rpc_register(rpc, "play_song", on_play_song, NULL);
 	rpc_log_if_register_failure(err);
 }

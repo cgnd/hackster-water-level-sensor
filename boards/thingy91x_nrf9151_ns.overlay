@@ -1,8 +1,4 @@
 / {
-	aliases {
-		sw1 = &button0;
-	};
-
 	pwmleds {
 		/* workaround error in upstream board definition that swapped blue and green */
 		pwm_led1: pwm_led_1 {
@@ -18,6 +14,14 @@
 	status = "okay";
 };
 
-&accel {
+&accelerometer_lp {
+	status = "okay";
+};
+
+&accelerometer_hp {
+	status = "okay";
+};
+
+&magnetometer {
 	status = "okay";
 };

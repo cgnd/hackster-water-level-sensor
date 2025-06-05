@@ -19,7 +19,7 @@ LOG_MODULE_REGISTER(app_settings, LOG_LEVEL_DBG);
 
 int period = 100000; /* should be 100 uSec */
 
-static int32_t _loop_delay_s = 60;
+static int32_t _loop_delay_s = 900; /* default: 15s */
 #define LOOP_DELAY_S_MAX 43200
 #define LOOP_DELAY_S_MIN 1
 #define LED_FADE_SPEED_MS_MAX 10000
