@@ -19,9 +19,6 @@ LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 #include "app_sensors.h"
 #include "app_settings.h"
 
-/* TODO: figure out why this isn't getting pulled in from math.h */
-#define M_PI 3.14159265358979323846
-
 static struct golioth_client *client;
 
 /* Sensor device structs */
