@@ -22,4 +22,4 @@ target_sources(app PRIVATE src/app_sensors.c)
 #
 # An alternative to setting _DEFAULT_SOURCE would be to just to define these
 # constants in a header file local to this app.
-add_compile_definitions(_DEFAULT_SOURCE)
+zephyr_compile_definitions(_DEFAULT_SOURCE)
