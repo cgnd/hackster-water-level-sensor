@@ -53,11 +53,15 @@ static enum golioth_status read_accel_sensor(zcbor_state_t *zse)
 	sensor_channel_get(accel, SENSOR_CHAN_ACCEL_Y, &accel_y);
 	sensor_channel_get(accel, SENSOR_CHAN_ACCEL_Z, &accel_z);
 
+	/* Raw accelerometer output values in m/s² */
 	double x = sensor_value_to_double(&accel_x);
 	double y = sensor_value_to_double(&accel_y);
 	double z = sensor_value_to_double(&accel_z);
-	double pitch = atan2(-x, sqrt(y * y + z * z)) * 180.0 / M_PI;
-	double roll = (atan2(y, z) * 180.0 / M_PI) - 180.0;
+
+	/* Pitch and roll angles are dependent on the installed orientation! */
+	double roll = atan2(-x, sqrt(y * y + z * z)) * 180.0 / M_PI;
+	double pitch = (atan2(-y, -z) * 180.0 / M_PI);
+
 	LOG_DBG("X: %.6f; Y: %.6f; Z: %.6f, Pitch: %.2f°, Roll: %.2f°", x, y, z, pitch, roll);
 
 	ok = zcbor_tstr_put_lit(zse, "accel") && zcbor_map_start_encode(zse, 3);
