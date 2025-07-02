@@ -17,7 +17,6 @@ The device uses an accelerometer to measure the angle (relative to the Earth's s
 This app implements the following features provided by Golioth:
 
   - [Device Settings Service](https://docs.golioth.io/firmware/golioth-firmware-sdk/device-settings-service)
-  - [Remote Procedure Call (RPC)](https://docs.golioth.io/firmware/golioth-firmware-sdk/remote-procedure-call)
   - [Stream Client](https://docs.golioth.io/firmware/golioth-firmware-sdk/stream-client)
   - [Over-the-Air (OTA) Firmware Upgrade](https://docs.golioth.io/firmware/golioth-firmware-sdk/firmware-upgrade/firmware-upgrade)
   - [Backend Logging](https://docs.golioth.io/device-management/logging/)
@@ -43,22 +42,6 @@ The following settings should be set in the Device Settings menu of the [Golioth
   - `BLUE_INTENSITY_PCT` Adjusts brightness of onboard blue LED. Set to an integer value (percentage).
 
     Default value is `50` percent.
-
-### Remote Procedure Call (RPC) Service
-
-The following RPCs can be initiated in the Remote Procedure Call menu of the [Golioth Console](https://console.golioth.io).
-
-  - `reboot` Reboot the system.
-
-  - `set_log_level` Set the log level.
-
-    The method takes a single parameter which can be one of the following integer values:
-
-      - `0`: `LOG_LEVEL_NONE`
-      - `1`: `LOG_LEVEL_ERR`
-      - `2`: `LOG_LEVEL_WRN`
-      - `3`: `LOG_LEVEL_INF`
-      - `4`: `LOG_LEVEL_DBG`
 
 ### Time-Series Stream data
 

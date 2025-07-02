@@ -9,7 +9,6 @@
 LOG_MODULE_REGISTER(hackster_water_level_sensor, LOG_LEVEL_DBG);
 
 #include <app_version.h>
-#include "app_rpc.h"
 #include "app_settings.h"
 #include "app_sensors.h"
 #include <golioth/client.h>
@@ -74,9 +73,6 @@ static void start_golioth_client(void)
 
 	/* Register Settings service */
 	app_settings_register(client);
-
-	/* Register RPC service */
-	app_rpc_register(client);
 }
 
 static void lte_handler(const struct lte_lc_evt *const evt)
