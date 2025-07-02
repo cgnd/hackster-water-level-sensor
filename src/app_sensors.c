@@ -18,6 +18,7 @@ LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 
 #include "app_sensors.h"
 #include "app_settings.h"
+#include "math_constants.h"
 
 static struct golioth_client *client;
 
