@@ -1,4 +1,4 @@
-<!-- SPDX-FileCopyrightText: Common Ground Electronics <https://cgnd.dev> -->
+<!-- SPDX-FileCopyrightText: 2025 Common Ground Electronics <https://cgnd.dev> -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Changelog

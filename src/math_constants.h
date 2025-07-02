@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Common Ground Electronics <https://cgnd.dev>
+ * Copyright (c) 2025 Common Ground Electronics <https://cgnd.dev>
  *
  * SPDX-License-Identifier: Apache-2.0
  */

@@ -1,3 +1,7 @@
+<!-- SPDX-FileCopyrightText: 2022-2023 Golioth, Inc. -->
+<!-- SPDX-FileCopyrightText: 2025 Common Ground Electronics <https://cgnd.dev> -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # Hackster Water Level Sensor
 
 This repository contains the firmware source code for the Hackster Water Level Sensor project.
