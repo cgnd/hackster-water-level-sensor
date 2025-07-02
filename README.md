@@ -31,22 +31,6 @@ The following settings should be set in the Device Settings menu of the [Golioth
 
   - `LOOP_DELAY_S` Adjusts the delay between sensor readings. Set to an integer value (seconds).
 
-  - `LED_FADE_SPEED_MS` Adjusts the total LED fade time from 0.5 to 10 seconds. Set to an integer value (milliseconds).
-
-    Default value is `1200` milliseconds.
-
-  - `RED_INTENSITY_PCT` Adjusts brightness of onboard red LED. Set to an integer value (percentage).
-
-    Default value is `50` percent.
-
-  - `GREEN_INTENSITY_PCT` Adjusts brightness of onboard green LED. Set to an integer value (percentage).
-
-    Default value is `50` percent.
-
-  - `BLUE_INTENSITY_PCT` Adjusts brightness of onboard blue LED. Set to an integer value (percentage).
-
-    Default value is `50` percent.
-
 ### Time-Series Stream data
 
 Sensor data is sent to Golioth periodically based on the `LOOP_DELAY_S` device setting. Data may be viewed in the [Golioth Console](https://console.golioth.io) by viewing the LightDB Stream tab of the device, or the in the Project's Monitor section on the left sidebar.

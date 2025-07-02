@@ -12,8 +12,5 @@
 
 int32_t get_loop_delay_s(void);
 void app_settings_register(struct golioth_client *client);
-int app_led_pwm_init(void);
-void all_leds_on(void);
-void all_leds_off(void);
 
 #endif /* __APP_SETTINGS_H__ */
