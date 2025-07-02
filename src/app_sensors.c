@@ -23,11 +23,7 @@ LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 static struct golioth_client *client;
 
 /* Sensor device structs */
-#if defined(CONFIG_BOARD_THINGY91X_NRF9151_NS)
-#include <drivers/bme68x_iaq.h>
-const struct device *weather = DEVICE_DT_GET_ONE(bosch_bme680);
 const struct device *accel = DEVICE_DT_GET_ONE(adi_adxl367);
-#endif
 
 /* Callback for LightDB Stream */
 static void async_error_handler(struct golioth_client *client, enum golioth_status status,
@@ -47,10 +43,9 @@ static enum golioth_status read_accel_sensor(zcbor_state_t *zse)
 	struct sensor_value accel_z;
 	bool ok;
 
-	/* ADXL362 */
 	int err = sensor_sample_fetch(accel);
 	if (err) {
-		LOG_ERR("Error fetching ADXL362 sensor sample: %d", err);
+		LOG_ERR("Error fetching low-power accelerometer sensor sample: %d", err);
 		return GOLIOTH_ERR_FAIL;
 	}
 

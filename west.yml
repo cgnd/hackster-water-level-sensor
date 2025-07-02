@@ -20,7 +20,6 @@ manifest:
         name-allowlist:
           - nrf
           - zephyr
-          - bme68x
           - bsec
           - cmsis
           - hal_nordic
