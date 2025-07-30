@@ -11,8 +11,8 @@ manifest:
   projects:
     - name: golioth
       path: modules/lib/golioth-firmware-sdk
-      revision: cdwilson/logging-fixes
-      url: https://github.com/cgnd/golioth-firmware-sdk.git
+      revision: aae73ca6d9d5d4c36ec05d385c6d27272140d3c1
+      url: https://github.com/golioth/golioth-firmware-sdk.git
       west-commands: scripts/west-commands.yml
       submodules: true
       import:
