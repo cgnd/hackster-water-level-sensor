@@ -14,8 +14,6 @@ LOG_MODULE_REGISTER(hackster_water_level_sensor, LOG_LEVEL_DBG);
 #include <golioth/client.h>
 #include <golioth/stream.h>
 #include <golioth/fw_update.h>
-#include <samples/common/net_connect.h>
-#include <samples/common/sample_credentials.h>
 #include <modem/lte_lc.h>
 #include <zephyr/kernel.h>
 
@@ -46,11 +44,17 @@ static void on_client_event(struct golioth_client *client, enum golioth_client_e
 
 static void start_golioth_client(void)
 {
-	/* Get the client configuration from auto-loaded settings */
-	const struct golioth_client_config *client_config = golioth_sample_credentials_get();
+	/* Configure the client to use TLS credentials from the nRF9151 modem */
+	const struct golioth_client_config client_config = {
+		.credentials =
+			{
+				.auth_type = GOLIOTH_TLS_AUTH_TYPE_TAG,
+				.tag = 1234, /* Replace with your tag ID */
+			},
+	};
 
 	/* Create and start a Golioth Client */
-	client = golioth_client_create(client_config);
+	client = golioth_client_create(&client_config);
 
 	/* Register Golioth on_connect callback */
 	golioth_client_register_event_callback(client, on_client_event, NULL);
