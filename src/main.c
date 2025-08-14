@@ -17,6 +17,13 @@ LOG_MODULE_REGISTER(hackster_water_level_sensor, LOG_LEVEL_DBG);
 #include <modem/lte_lc.h>
 #include <zephyr/kernel.h>
 
+/* TODO: Is there a better way to determine if we are using runtime PSK auth? */
+#define RUNTIME_PSK_AUTH (CONFIG_NET_SOCKETS_TLS_PRIORITY < CONFIG_NET_SOCKETS_OFFLOAD_PRIORITY)
+
+#if RUNTIME_PSK_AUTH
+#include <samples/common/sample_credentials.h>
+#endif
+
 /* Current firmware version; update in VERSION */
 static const char *_current_version =
 	STRINGIFY(APP_VERSION_MAJOR) "." STRINGIFY(APP_VERSION_MINOR) "." STRINGIFY(APP_PATCHLEVEL);
@@ -44,17 +51,27 @@ static void on_client_event(struct golioth_client *client, enum golioth_client_e
 
 static void start_golioth_client(void)
 {
-	/* Configure the client to use TLS credentials from the nRF9151 modem */
-	const struct golioth_client_config client_config = {
+#if RUNTIME_PSK_AUTH
+	/* Get the client configuration from auto-loaded settings */
+	const struct golioth_client_config *client_config = golioth_sample_credentials_get();
+
+	LOG_INF("Loaded Golioth credentials from settings subsystem");
+#else
+	/* Get the client configuration from the nRF9151 modem */
+	const struct golioth_client_config _client_config = {
 		.credentials =
 			{
 				.auth_type = GOLIOTH_TLS_AUTH_TYPE_TAG,
-				.tag = 1234, /* Replace with your tag ID */
+				.tag = CONFIG_GOLIOTH_COAP_CLIENT_CREDENTIALS_TAG,
 			},
 	};
 
+	const struct golioth_client_config *client_config = &_client_config;
+
+	LOG_INF("Loaded Golioth credentials from modem credential storage");
+#endif
 	/* Create and start a Golioth Client */
-	client = golioth_client_create(&client_config);
+	client = golioth_client_create(client_config);
 
 	/* Register Golioth on_connect callback */
 	golioth_client_register_event_callback(client, on_client_event, NULL);
