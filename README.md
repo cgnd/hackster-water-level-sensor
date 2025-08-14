@@ -171,11 +171,69 @@ west flash --erase
 
 ## Provision the device
 
-Configure PSK-ID and PSK using the device shell based on your [Golioth credentials](https://docs.golioth.io/device-management/authentication/psk-auth) and reboot:
+The firmware requires the PSK credentials to be programmed into the nRF9151 secure credential storage. The easiest way to do this is to use the Certificate Manager GUI built into the Cellular Monitor app provided by the nRF Connect for Desktop software.
+
+The Cellular Monitor app communicates with the device via AT commands. Luckily, Nordic provides an `at_client` app that is compatible with the Cellular Monitor. Flash this firmware onto the Thingy:91 X using the commands below.
+
+```sh
+cd ~/hackster-water-level-sensor/
+west build -p -b thingy91x/nrf9151/ns --sysbuild deps/nrf/samples/cellular/at_client/
+west flash --erase
+```
+
+Next, open the Cellular Monitor app.
+
+![](assets/nrf_connect_for_desktop_cellular_monitor.png)
+
+Open the CERTIFICATE MANAGER tab in the Cellular Monitor app and select the Thingy:91 X device from the top left.
+
+Provide the [PSK-ID and PSK for the device](https://docs.golioth.io/device-management/authentication/psk-auth) from the Device Credentials tab in the Golioth Console. Note that the PSK value from the Golioth Console must be [converted from a string to hex](https://codebeautify.org/string-hex-converter) before writing it to the device.
+
+Finally, set the security tag to match the value of `GOLIOTH_COAP_CLIENT_CREDENTIALS_TAG` (i.e. `515765868`) and click the "Update certificate" button.
+
+![](assets/cellular_monitor_certificate_manager.png)
+
+Use the Serial Terminal app to verify the certificate was programmed correctly.
+
+![](assets/nrf_connect_for_desktop_serial_terminal.png)
+
+Run the `AT%CMNG=1` command in the Terminal screen to list all stored certificates. There should be two entries matching the security tag that was specified. If there is only one entry, press the "Update certificates" button again in the certificate manager window.
+
+![](assets/serial_terminal_certificates_flashed.png)
+
+## Kconfig Debugging Overlays
+
+The default `prj.conf` disables the serial console and remote logging to reduce power consumption.
+
+To enable serial debug logging output and the Zephyr shell on the Thingy:91 X, enable the `overlay-serial-debug.conf` overlay.
+
+```sh
+west build -p -b thingy91x/nrf9151/ns --sysbuild --extra-conf overlay-serial-debug.conf
+```
+
+To enable remote logging to the Golioth Console, enable the `overlay-golioth-logging.conf` overlay.
+
+```sh
+west build -p -b thingy91x/nrf9151/ns --sysbuild --extra-conf overlay-golioth-logging.conf
+```
+
+To enable configuring the Golioth PSK credentials via the Zephyr shell, enable the `overlay-golioth-runtime-psk.conf` overlay.
+
+```sh
+west build -p -b thingy91x/nrf9151/ns --sysbuild --extra-conf overlay-golioth-runtime-psk.conf
+```
+
+Once the firmware has been flashed on the device, use the Serial Terminal app to set the PSK-ID and PSK in the Zephyr shell and reboot the device:
 
 ``` text
 uart:~$ settings set golioth/psk-id <my-psk-id@my-project>
 uart:~$ settings set golioth/psk <my-psk>
 uart:~$ kernel reboot cold
+```
+
+These overlays can be combined to enable all the debug configurations at once.
+
+```sh
+west build -p -b thingy91x/nrf9151/ns --sysbuild --extra-conf overlay-serial-debug.conf --extra-conf overlay-golioth-logging.conf --extra-conf overlay-golioth-runtime-psk.conf
 ```
 
