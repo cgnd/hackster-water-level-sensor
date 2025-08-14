@@ -7,6 +7,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-08-13
+
+### Added
+
+- Add debugging config overlays
+
+### Fixed
+
+- Minor README & CHANGELOG fixes
+
+### Changed
+
+- Store PSK credentials securely in the nRF9151 and enable offloaded sockets
+- Configure for low-power operation
+
 ## [1.0.0] - 2025-07-16
 
 Initial water level sensor prototype firmware release.
