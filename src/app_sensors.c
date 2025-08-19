@@ -24,7 +24,7 @@ LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 static struct golioth_client *client;
 
 /* Sensor device structs */
-const struct device *accel = DEVICE_DT_GET_ONE(adi_adxl367);
+static const struct device *const accel = DEVICE_DT_GET_ONE(adi_adxl367);
 
 /* Callback for LightDB Stream */
 static void async_error_handler(struct golioth_client *client, enum golioth_status status,
