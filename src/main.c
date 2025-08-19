@@ -119,9 +119,12 @@ int main(void)
 	LOG_INF("Connecting to Golioth...");
 	k_sem_take(&connected, K_FOREVER);
 
+	/* Wait for all app settings to be registered and synchronized */
+	app_settings_wait_ready();
+
 	while (true) {
 		app_sensors_read_and_stream();
 
-		k_sleep(K_SECONDS(get_measurement_interval()));
+		k_sleep(K_SECONDS(get_stream_delay_s()));
 	}
 }

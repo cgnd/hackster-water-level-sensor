@@ -15,13 +15,45 @@ LOG_MODULE_REGISTER(app_settings, LOG_LEVEL_DBG);
 #include "main.h"
 #include "app_settings.h"
 
-static int32_t _measurement_interval = 900; /* default: 15 minutes */
+static int32_t _stream_delay_s = 900; /* default: 15 minutes */
 static float _float_length = 0;
 static float _float_offset = 0;
+static int32_t _accel_num_samples = 100;     /* default: 100 samples */
+static int32_t _accel_sample_delay_ms = 100; /* default: 100 milliseconds */
+static bool _stream_delay_s_registered = false;
+static bool _float_length_registered = false;
+static bool _float_offset_registered = false;
+static bool _accel_num_samples_registered = false;
+static bool _accel_sample_delay_ms_registered = false;
 
-int32_t get_measurement_interval(void)
+K_SEM_DEFINE(registration_completed, 0, 1);
+
+bool app_settings_ready(void)
 {
-	return _measurement_interval;
+	return _stream_delay_s_registered && _float_length_registered && _float_offset_registered &&
+	       _accel_num_samples_registered && _accel_sample_delay_ms_registered;
+}
+
+static void check_registration_status(void)
+{
+	if (app_settings_ready()) {
+		k_sem_give(&registration_completed);
+	}
+}
+
+void app_settings_wait_ready(void)
+{
+	LOG_INF("Waiting for settings to be registered...");
+
+	/* Wait until all settings are registered */
+	k_sem_take(&registration_completed, K_FOREVER);
+
+	LOG_INF("All settings registered successfully");
+}
+
+int32_t get_stream_delay_s(void)
+{
+	return _stream_delay_s;
 }
 
 float get_float_length(void)
@@ -34,17 +66,29 @@ float get_float_offset(void)
 	return _float_offset;
 }
 
-static enum golioth_settings_status on_measurement_interval_setting(int32_t new_value, void *arg)
+int32_t get_accel_num_samples(void)
+{
+	return _accel_num_samples;
+}
+
+int32_t get_accel_sample_delay_ms(void)
+{
+	return _accel_sample_delay_ms;
+}
+
+static enum golioth_settings_status on_stream_delay_s_setting(int32_t new_value, void *arg)
 {
 	/* Only update if value has changed */
-	if (_measurement_interval == new_value) {
-		LOG_DBG("Received MEASUREMENT_INTERVAL already matches local value.");
+	if (_stream_delay_s == new_value) {
+		LOG_DBG("Received STREAM_DELAY_S setting already matches local value.");
 	} else {
-		_measurement_interval = new_value;
-		LOG_INF("Set MEASUREMENT_INTERVAL to %i seconds", _measurement_interval);
+		_stream_delay_s = new_value;
+		LOG_INF("Set STREAM_DELAY_S setting to %i seconds", _stream_delay_s);
 
 		wake_system_thread();
 	}
+	_stream_delay_s_registered = true;
+	check_registration_status();
 	return GOLIOTH_SETTINGS_SUCCESS;
 }
 
@@ -52,11 +96,13 @@ static enum golioth_settings_status on_float_length_setting(float new_value, voi
 {
 	/* Only update if value has changed */
 	if (_float_length == new_value) {
-		LOG_DBG("Received FLOAT_LENGTH already matches local value.");
+		LOG_DBG("Received FLOAT_LENGTH setting already matches local value.");
 	} else {
 		_float_length = new_value;
-		LOG_INF("Set FLOAT_LENGTH to %.6f inches", (double)_float_length);
+		LOG_INF("Set FLOAT_LENGTH setting to %.6f inches", (double)_float_length);
 	}
+	_float_length_registered = true;
+	check_registration_status();
 	return GOLIOTH_SETTINGS_SUCCESS;
 }
 
@@ -64,15 +110,46 @@ static enum golioth_settings_status on_float_offset_setting(float new_value, voi
 {
 	/* Only update if value has changed */
 	if (_float_offset == new_value) {
-		LOG_DBG("Received FLOAT_OFFSET already matches local value.");
+		LOG_DBG("Received FLOAT_OFFSET setting already matches local value.");
 	} else {
 		_float_offset = new_value;
-		LOG_INF("Set FLOAT_OFFSET to %.6f inches", (double)_float_offset);
+		LOG_INF("Set FLOAT_OFFSET setting to %.6f inches", (double)_float_offset);
 	}
+	_float_offset_registered = true;
+	check_registration_status();
 	return GOLIOTH_SETTINGS_SUCCESS;
 }
 
-void check_register_settings_error_and_log(int err, const char *settings_str)
+static enum golioth_settings_status on_accel_num_samples_setting(int32_t new_value, void *arg)
+{
+	/* Only update if value has changed */
+	if (_accel_num_samples == new_value) {
+		LOG_DBG("Received ACCEL_NUM_SAMPLES setting already matches local value.");
+	} else {
+		_accel_num_samples = new_value;
+		LOG_INF("Set ACCEL_NUM_SAMPLES setting to %i samples", _accel_num_samples);
+	}
+	_accel_num_samples_registered = true;
+	check_registration_status();
+	return GOLIOTH_SETTINGS_SUCCESS;
+}
+
+static enum golioth_settings_status on_accel_sample_delay_ms_setting(int32_t new_value, void *arg)
+{
+	/* Only update if value has changed */
+	if (_accel_sample_delay_ms == new_value) {
+		LOG_DBG("Received ACCEL_SAMPLE_DELAY_MS setting already matches local value.");
+	} else {
+		_accel_sample_delay_ms = new_value;
+		LOG_INF("Set ACCEL_SAMPLE_DELAY_MS setting to %i milliseconds",
+			_accel_sample_delay_ms);
+	}
+	_accel_sample_delay_ms_registered = true;
+	check_registration_status();
+	return GOLIOTH_SETTINGS_SUCCESS;
+}
+
+static void check_register_settings_error_and_log(int err, const char *settings_str)
 {
 	if (err == 0)
 	{
@@ -87,10 +164,10 @@ void app_settings_register(struct golioth_client *client)
 	struct golioth_settings *settings = golioth_settings_init(client);
 	int err;
 
-	err = golioth_settings_register_int_with_range(
-		settings, "MEASUREMENT_INTERVAL", MEASUREMENT_INTERVAL_MIN,
-		MEASUREMENT_INTERVAL_MAX, on_measurement_interval_setting, NULL);
-	check_register_settings_error_and_log(err, "MEASUREMENT_INTERVAL");
+	err = golioth_settings_register_int_with_range(settings, "STREAM_DELAY_S",
+						       STREAM_DELAY_S_MIN, STREAM_DELAY_S_MAX,
+						       on_stream_delay_s_setting, NULL);
+	check_register_settings_error_and_log(err, "STREAM_DELAY_S");
 
 	err = golioth_settings_register_float(settings, "FLOAT_LENGTH", on_float_length_setting,
 					      NULL);
@@ -99,4 +176,14 @@ void app_settings_register(struct golioth_client *client)
 	err = golioth_settings_register_float(settings, "FLOAT_OFFSET", on_float_offset_setting,
 					      NULL);
 	check_register_settings_error_and_log(err, "FLOAT_OFFSET");
+
+	err = golioth_settings_register_int_with_range(settings, "ACCEL_NUM_SAMPLES",
+						       ACCEL_NUM_SAMPLES_MIN, ACCEL_NUM_SAMPLES_MAX,
+						       on_accel_num_samples_setting, NULL);
+	check_register_settings_error_and_log(err, "ACCEL_NUM_SAMPLES");
+
+	err = golioth_settings_register_int_with_range(
+		settings, "ACCEL_SAMPLE_DELAY_MS", ACCEL_SAMPLE_DELAY_MS_MIN,
+		ACCEL_SAMPLE_DELAY_MS_MAX, on_accel_sample_delay_ms_setting, NULL);
+	check_register_settings_error_and_log(err, "ACCEL_SAMPLE_DELAY_MS");
 }
