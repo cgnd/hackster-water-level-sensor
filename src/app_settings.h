@@ -12,12 +12,20 @@
 #include <limits.h>
 #include <golioth/client.h>
 
-#define MEASUREMENT_INTERVAL_MIN 1
-#define MEASUREMENT_INTERVAL_MAX INT32_MAX
+#define STREAM_DELAY_S_MIN	  1
+#define STREAM_DELAY_S_MAX	  INT32_MAX
+#define ACCEL_NUM_SAMPLES_MIN	  1
+#define ACCEL_NUM_SAMPLES_MAX	  INT32_MAX
+#define ACCEL_SAMPLE_DELAY_MS_MIN 0
+#define ACCEL_SAMPLE_DELAY_MS_MAX INT32_MAX
 
-int32_t get_measurement_interval(void);
+bool app_settings_ready(void);
+void app_settings_wait_ready(void);
+int32_t get_stream_delay_s(void);
 float get_float_length(void);
 float get_float_offset(void);
+int32_t get_accel_num_samples(void);
+int32_t get_accel_sample_delay_ms(void);
 void app_settings_register(struct golioth_client *client);
 
 #endif /* __APP_SETTINGS_H__ */

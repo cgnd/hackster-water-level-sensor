@@ -241,16 +241,45 @@ static int encode_sensor_data(zcbor_state_t *zse, struct accel_xyz *accel_data,
 void app_sensors_read_and_stream(void)
 {
 	int err;
+	int accel_num_samples = get_accel_num_samples();
+	int accel_sample_delay_ms = get_accel_sample_delay_ms();
 	char cbor_buf[256];
-	struct accel_xyz accel_data;
+	struct accel_xyz accel_sample, accel_data;
 	struct tilt_sensor tilt_data;
 	struct water_level_sensor water_level_data;
 
-	err = read_accel_sensor(&accel_data);
-	if (err) {
-		return;
+	/* Average accelerometer samples */
+	accel_data.x = 0;
+	accel_data.y = 0;
+	accel_data.z = 0;
+
+	for (int i = 0; i < accel_num_samples; i++) {
+		err = read_accel_sensor(&accel_sample);
+		if (err) {
+			return;
+		}
+
+		if (i == 0) {
+			accel_data.x = accel_sample.x;
+			accel_data.y = accel_sample.y;
+			accel_data.z = accel_sample.z;
+		} else {
+			accel_data.x += accel_sample.x;
+			accel_data.y += accel_sample.y;
+			accel_data.z += accel_sample.z;
+		}
+
+		LOG_DBG("Sample %d: X: %.6f, Y: %.6f, Z: %.6f", i, accel_sample.x, accel_sample.y,
+			accel_sample.z);
+
+		k_sleep(K_MSEC(accel_sample_delay_ms));
 	}
 
+	accel_data.x /= accel_num_samples;
+	accel_data.y /= accel_num_samples;
+	accel_data.z /= accel_num_samples;
+
+	/* Calculate tilt and water level from accelerometer data */
 	calculate_tilt(&accel_data, &tilt_data);
 	calculate_water_level(&tilt_data, &water_level_data);
 
