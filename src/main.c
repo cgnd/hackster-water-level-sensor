@@ -116,6 +116,7 @@ int main(void)
 	lte_lc_connect_async(lte_handler);
 
 	/* Wait for connection to Golioth */
+	LOG_INF("Connecting to Golioth...");
 	k_sem_take(&connected, K_FOREVER);
 
 	while (true) {
