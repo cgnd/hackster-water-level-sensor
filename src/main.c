@@ -29,7 +29,7 @@ static const char *_current_version =
 	STRINGIFY(APP_VERSION_MAJOR) "." STRINGIFY(APP_VERSION_MINOR) "." STRINGIFY(APP_PATCHLEVEL);
 
 static struct golioth_client *client;
-K_SEM_DEFINE(connected, 0, 1);
+K_SEM_DEFINE(connected_sem, 0, 1);
 
 static k_tid_t _system_thread;
 
@@ -44,7 +44,7 @@ static void on_client_event(struct golioth_client *client, enum golioth_client_e
 	bool is_connected = (event == GOLIOTH_CLIENT_EVENT_CONNECTED);
 
 	if (is_connected) {
-		k_sem_give(&connected);
+		k_sem_give(&connected_sem);
 	}
 	LOG_INF("Golioth client %s", is_connected ? "connected" : "disconnected");
 }
@@ -117,7 +117,7 @@ int main(void)
 
 	/* Wait for connection to Golioth */
 	LOG_INF("Connecting to Golioth...");
-	k_sem_take(&connected, K_FOREVER);
+	k_sem_take(&connected_sem, K_FOREVER);
 
 	/* Wait for all app settings to be registered and synchronized */
 	app_settings_wait_ready();
