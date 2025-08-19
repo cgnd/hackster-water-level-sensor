@@ -26,7 +26,7 @@ static bool _float_offset_registered = false;
 static bool _accel_num_samples_registered = false;
 static bool _accel_sample_delay_ms_registered = false;
 
-K_SEM_DEFINE(registration_completed, 0, 1);
+K_SEM_DEFINE(registration_completed_sem, 0, 1);
 
 bool app_settings_ready(void)
 {
@@ -37,7 +37,7 @@ bool app_settings_ready(void)
 static void check_registration_status(void)
 {
 	if (app_settings_ready()) {
-		k_sem_give(&registration_completed);
+		k_sem_give(&registration_completed_sem);
 	}
 }
 
@@ -46,7 +46,7 @@ void app_settings_wait_ready(void)
 	LOG_INF("Waiting for settings to be registered...");
 
 	/* Wait until all settings are registered */
-	k_sem_take(&registration_completed, K_FOREVER);
+	k_sem_take(&registration_completed_sem, K_FOREVER);
 
 	LOG_INF("All settings registered successfully");
 }
