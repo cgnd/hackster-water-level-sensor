@@ -43,6 +43,11 @@ static int read_accel_sensor(struct accel_xyz *accel_data)
 	struct sensor_value accel_y;
 	struct sensor_value accel_z;
 
+	if (!device_is_ready(accel)) {
+		LOG_ERR("%s is not ready", accel->name);
+		return -ENODEV;
+	}
+
 	int err = sensor_sample_fetch(accel);
 	if (err) {
 		LOG_ERR("Error fetching low-power accelerometer sensor sample: %d", err);
