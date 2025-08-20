@@ -15,11 +15,11 @@ LOG_MODULE_REGISTER(app_settings, LOG_LEVEL_DBG);
 #include "main.h"
 #include "app_settings.h"
 
-static int32_t _stream_delay_s = 900; /* default: 15 minutes */
-static float _float_length = 0;
-static float _float_offset = 0;
-static int32_t _accel_num_samples = 100;     /* default: 100 samples */
-static int32_t _accel_sample_delay_ms = 100; /* default: 100 milliseconds */
+static int32_t _stream_delay_s = STREAM_DELAY_S_DEFAULT;
+static float _float_length = FLOAT_LENGTH_DEFAULT;
+static float _float_offset = FLOAT_OFFSET_DEFAULT;
+static int32_t _accel_num_samples = ACCEL_NUM_SAMPLES_DEFAULT;
+static int32_t _accel_sample_delay_ms = ACCEL_SAMPLE_DELAY_MS_DEFAULT;
 static bool _stream_delay_s_registered = false;
 static bool _float_length_registered = false;
 static bool _float_offset_registered = false;
