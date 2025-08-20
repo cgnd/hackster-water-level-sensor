@@ -7,6 +7,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-08-20
+
+### Fixed
+
+- Fix network connection settings to reduce power consumption:
+  - Change Golioth CoAP RX timeout to 90000 seconds (25 hours)
+  - Change LTE PSM periodic TAU to 93600 seconds (26 hours)
+
 ## [2.0.0] - 2025-08-19
 
 ### Added
@@ -25,7 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
-- Fix VERSION
+- Fix `VERSION`
 
 ## [1.1.0] - 2025-08-13
 
@@ -35,7 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
-- Minor README & CHANGELOG fixes
+- Minor `README.md` & `CHANGELOG.md` fixes
 
 ### Changed
 
