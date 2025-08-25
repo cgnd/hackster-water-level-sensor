@@ -306,7 +306,7 @@ void app_sensors_read_and_stream(void)
 			LOG_ERR("Failed to send sensor data to Golioth: %d", err);
 		}
 	} else {
-		LOG_DBG("No connection available, skipping sending data to Golioth");
+		LOG_WRN("No connection available, skipping sending data to Golioth");
 	}
 }
 
