@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Add an "App" menu to Kconfig with app-specific options:
+  - `CONFIG_APP_STREAM_DELAY_S`
+  - `CONFIG_APP_ACCEL_NUM_SAMPLES`
+  - `CONFIG_ACCEL_SAMPLE_DELAY_MS`
+
 ### Changed
 
 - Set LTE PSM requested active time (RAT) to 6 seconds

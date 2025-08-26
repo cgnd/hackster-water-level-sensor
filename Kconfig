@@ -1,7 +1,33 @@
 # Copyright (c) 2022-2023 Golioth, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-mainmenu "Golioth application options"
+module = APP
+module-str = APP
+
+mainmenu "Hackster Water Level Sensor"
+
+menu "App"
+
+config APP_STREAM_DELAY_S
+	int "Stream delay (in seconds)"
+	default 900
+	help
+	  Delay between sending water level sensor readings to Golioth.
+
+config APP_ACCEL_NUM_SAMPLES
+	int "Number of accelerometer samples"
+	default 100
+	help
+	  Total number of accelerometer samples used to calculate the float
+	  angle.
+
+config ACCEL_SAMPLE_DELAY_MS
+	int "Accelerometer sample delay (in milliseconds)"
+	default 100
+	help
+	  Delay between reading each accelerometer sample.
+
+source "subsys/logging/Kconfig.template.log_config"
 
 if DNS_RESOLVER
 
@@ -13,4 +39,10 @@ config DNS_SERVER1
 
 endif # DNS_RESOLVER
 
+endmenu # App Options
+
+menu "Zephyr Kernel"
+
 source "Kconfig.zephyr"
+
+endmenu # Zephyr Kernel
