@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Set LTE PSM requested active time (RAT) to 6 seconds
 - Log a warning message when sensor data is not sent to Golioth
 
 ## [2.0.1] - 2025-08-20
