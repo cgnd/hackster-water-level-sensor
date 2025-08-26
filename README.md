@@ -37,11 +37,11 @@ This app implements the following features provided by Golioth:
 
 The following settings should be set in the Device Settings menu of the [Golioth Console](https://console.golioth.io).
 
-  - **`STREAM_DELAY_S`** How long the device sleeps between sending water level sensor readings to Golioth. Set to an integer value (seconds). Defaults to `900` seconds (15 min).
+  - **`STREAM_DELAY_S`** Delay between sending water level sensor readings to Golioth. Set to an integer value (seconds). Defaults to `900` seconds (15 min).
   - **`FLOAT_LENGTH`** The length of the float arm measured from the center of the hinge to the point where the arm touches the surface of the water. Set to a floating point value (inches). Defaults to `0`.
   - **`FLOAT_OFFSET`** An offset value added to the measured float height. Set to a floating point value (inches). Defaults to `0`.
   - **`ACCEL_NUM_SAMPLES`** Total number of accelerometer samples used to calculate the float angle. Set to an integer value. Defaults to `100`.
-  - **`ACCEL_SAMPLE_DELAY_MS`** How long the device sleeps between reading each accelerometer sample. Set to an integer value (milliseconds). Defaults to `100`.
+  - **`ACCEL_SAMPLE_DELAY_MS`** Delay between reading each accelerometer sample. Set to an integer value (milliseconds). Defaults to `100`.
 
 ### Time-Series Stream data
 

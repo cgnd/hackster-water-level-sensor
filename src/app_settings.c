@@ -14,13 +14,13 @@
 
 #include "main.h"
 
-LOG_MODULE_REGISTER(app_settings, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(app_settings, CONFIG_APP_LOG_LEVEL);
 
-static int32_t _stream_delay_s = STREAM_DELAY_S_DEFAULT;
+static int32_t _stream_delay_s = CONFIG_APP_STREAM_DELAY_S;
 static float _float_length = FLOAT_LENGTH_DEFAULT;
 static float _float_offset = FLOAT_OFFSET_DEFAULT;
-static int32_t _accel_num_samples = ACCEL_NUM_SAMPLES_DEFAULT;
-static int32_t _accel_sample_delay_ms = ACCEL_SAMPLE_DELAY_MS_DEFAULT;
+static int32_t _accel_num_samples = CONFIG_APP_ACCEL_NUM_SAMPLES;
+static int32_t _accel_sample_delay_ms = CONFIG_ACCEL_SAMPLE_DELAY_MS;
 static bool _stream_delay_s_registered = false;
 static bool _float_length_registered = false;
 static bool _float_offset_registered = false;

@@ -16,7 +16,7 @@
 #include "app_settings.h"
 #include "app_sensors.h"
 
-LOG_MODULE_REGISTER(hackster_water_level_sensor, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
 /* TODO: Is there a better way to determine if we are using runtime PSK auth? */
 #define RUNTIME_PSK_AUTH (CONFIG_NET_SOCKETS_TLS_PRIORITY < CONFIG_NET_SOCKETS_OFFLOAD_PRIORITY)
