@@ -5,21 +5,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
+#include "app_sensors.h"
 
 #include <stdlib.h>
 #include <math.h>
+
 #include <golioth/client.h>
 #include <golioth/stream.h>
 #include <zcbor_encode.h>
+#include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/sensor.h>
-#include <zephyr/device.h>
+#include <zephyr/logging/log.h>
 
-#include "app_sensors.h"
 #include "app_settings.h"
 #include "math_constants.h"
+
+LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 
 static struct golioth_client *client;
 

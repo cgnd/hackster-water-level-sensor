@@ -5,17 +5,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(hackster_water_level_sensor, LOG_LEVEL_DBG);
-
 #include <app_version.h>
+#include <golioth/client.h>
+#include <golioth/fw_update.h>
+#include <golioth/stream.h>
+#include <modem/lte_lc.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/kernel.h>
+
 #include "app_settings.h"
 #include "app_sensors.h"
-#include <golioth/client.h>
-#include <golioth/stream.h>
-#include <golioth/fw_update.h>
-#include <modem/lte_lc.h>
-#include <zephyr/kernel.h>
+
+LOG_MODULE_REGISTER(hackster_water_level_sensor, LOG_LEVEL_DBG);
 
 /* TODO: Is there a better way to determine if we are using runtime PSK auth? */
 #define RUNTIME_PSK_AUTH (CONFIG_NET_SOCKETS_TLS_PRIORITY < CONFIG_NET_SOCKETS_OFFLOAD_PRIORITY)

@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <limits.h>
+
 #include <golioth/client.h>
 
 #define STREAM_DELAY_S_MIN	      1
