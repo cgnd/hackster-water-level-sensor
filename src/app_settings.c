@@ -5,15 +5,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(app_settings, LOG_LEVEL_DBG);
+#include "app_settings.h"
 
 #include <golioth/client.h>
 #include <golioth/settings.h>
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
 #include "main.h"
-#include "app_settings.h"
+
+LOG_MODULE_REGISTER(app_settings, LOG_LEVEL_DBG);
 
 static int32_t _stream_delay_s = STREAM_DELAY_S_DEFAULT;
 static float _float_length = FLOAT_LENGTH_DEFAULT;
