@@ -28,6 +28,11 @@ static struct golioth_client *s_client;
 /* Sensor device structs */
 static const struct device *const s_accel = DEVICE_DT_GET_ONE(adi_adxl367);
 
+void app_sensors_init(struct golioth_client *client)
+{
+	s_client = client;
+}
+
 /* Callback for LightDB Stream */
 static void async_error_handler(struct golioth_client *client, enum golioth_status status,
 				const struct golioth_coap_rsp_code *coap_rsp_code, const char *path,
@@ -310,9 +315,4 @@ void app_sensors_read_and_stream(void)
 	} else {
 		LOG_WRN("No connection available, skipping sending data to Golioth");
 	}
-}
-
-void app_sensors_set_client(struct golioth_client *sensors_client)
-{
-	client = sensors_client;
 }

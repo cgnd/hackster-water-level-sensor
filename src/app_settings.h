@@ -22,6 +22,7 @@
 #define ACCEL_SAMPLE_DELAY_MS_MIN     0
 #define ACCEL_SAMPLE_DELAY_MS_MAX     INT32_MAX
 
+void app_settings_init(struct golioth_client *client);
 bool app_settings_ready(void);
 void app_settings_wait_ready(void);
 int32_t get_stream_delay_s(void);
@@ -29,6 +30,5 @@ float get_float_length(void);
 float get_float_offset(void);
 int32_t get_accel_num_samples(void);
 int32_t get_accel_sample_delay_ms(void);
-void app_settings_register(struct golioth_client *client);
 
 #endif /* __APP_SETTINGS_H__ */

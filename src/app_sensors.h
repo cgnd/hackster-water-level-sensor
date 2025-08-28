@@ -29,7 +29,7 @@ struct water_level_sensor {
 	double float_height;
 };
 
-void app_sensors_set_client(struct golioth_client *sensors_client);
+void app_sensors_init(struct golioth_client *client);
 void app_sensors_read_and_stream(void);
 
 #endif /* __APP_SENSORS_H__ */
