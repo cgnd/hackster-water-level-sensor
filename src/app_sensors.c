@@ -23,10 +23,10 @@
 
 LOG_MODULE_REGISTER(app_sensors, CONFIG_APP_LOG_LEVEL);
 
-static struct golioth_client *client;
+static struct golioth_client *s_client;
 
 /* Sensor device structs */
-static const struct device *const accel = DEVICE_DT_GET_ONE(adi_adxl367);
+static const struct device *const s_accel = DEVICE_DT_GET_ONE(adi_adxl367);
 
 /* Callback for LightDB Stream */
 static void async_error_handler(struct golioth_client *client, enum golioth_status status,
@@ -45,20 +45,20 @@ static int read_accel_sensor(struct accel_xyz *accel_data)
 	struct sensor_value accel_y;
 	struct sensor_value accel_z;
 
-	if (!device_is_ready(accel)) {
-		LOG_ERR("%s is not ready", accel->name);
+	if (!device_is_ready(s_accel)) {
+		LOG_ERR("%s is not ready", s_accel->name);
 		return -ENODEV;
 	}
 
-	int err = sensor_sample_fetch(accel);
+	int err = sensor_sample_fetch(s_accel);
 	if (err) {
 		LOG_ERR("Error fetching low-power accelerometer sensor sample: %d", err);
 		return err;
 	}
 
-	sensor_channel_get(accel, SENSOR_CHAN_ACCEL_X, &accel_x);
-	sensor_channel_get(accel, SENSOR_CHAN_ACCEL_Y, &accel_y);
-	sensor_channel_get(accel, SENSOR_CHAN_ACCEL_Z, &accel_z);
+	sensor_channel_get(s_accel, SENSOR_CHAN_ACCEL_X, &accel_x);
+	sensor_channel_get(s_accel, SENSOR_CHAN_ACCEL_Y, &accel_y);
+	sensor_channel_get(s_accel, SENSOR_CHAN_ACCEL_Z, &accel_z);
 
 	/* Raw accelerometer output values in m/s² */
 	double x = sensor_value_to_double(&accel_x);
@@ -292,7 +292,7 @@ void app_sensors_read_and_stream(void)
 		water_level_data.float_height);
 
 	/* Only stream sensor data if connected */
-	if (golioth_client_is_connected(client)) {
+	if (golioth_client_is_connected(s_client)) {
 		/* Encode data as CBOR */
 		ZCBOR_STATE_E(zse, 3, cbor_buf, sizeof(cbor_buf), 1);
 		err = encode_sensor_data(zse, &accel_data, &tilt_data, &water_level_data);
@@ -302,8 +302,8 @@ void app_sensors_read_and_stream(void)
 		size_t cbor_size = zse->payload - (const uint8_t *)cbor_buf;
 
 		/* Send to LightDB Stream on "sensor" endpoint */
-		err = golioth_stream_set_async(client, "sensor", GOLIOTH_CONTENT_TYPE_CBOR, cbor_buf,
-					cbor_size, async_error_handler, NULL);
+		err = golioth_stream_set_async(s_client, "sensor", GOLIOTH_CONTENT_TYPE_CBOR,
+					       cbor_buf, cbor_size, async_error_handler, NULL);
 		if (err) {
 			LOG_ERR("Failed to send sensor data to Golioth: %d", err);
 		}

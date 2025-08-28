@@ -26,17 +26,17 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 #endif
 
 /* Current firmware version; update in VERSION */
-static const char *_current_version =
+static const char *s_current_version =
 	STRINGIFY(APP_VERSION_MAJOR) "." STRINGIFY(APP_VERSION_MINOR) "." STRINGIFY(APP_PATCHLEVEL);
 
-static struct golioth_client *client;
+static struct golioth_client *s_client;
 K_SEM_DEFINE(connected_sem, 0, 1);
 
-static k_tid_t _system_thread;
+static k_tid_t s_system_thread;
 
 void wake_system_thread(void)
 {
-	k_wakeup(_system_thread);
+	k_wakeup(s_system_thread);
 }
 
 static void on_client_event(struct golioth_client *client, enum golioth_client_event event,
@@ -59,7 +59,7 @@ static void start_golioth_client(void)
 	LOG_INF("Loaded Golioth credentials from settings subsystem");
 #else
 	/* Get the client configuration from the nRF9151 modem */
-	const struct golioth_client_config _client_config = {
+	const struct golioth_client_config gclient_config = {
 		.credentials =
 			{
 				.auth_type = GOLIOTH_TLS_AUTH_TYPE_TAG,
@@ -67,26 +67,26 @@ static void start_golioth_client(void)
 			},
 	};
 
-	const struct golioth_client_config *client_config = &_client_config;
+	const struct golioth_client_config *client_config = &gclient_config;
 
 	LOG_INF("Loaded Golioth credentials from modem credential storage");
 #endif
 	/* Create and start a Golioth Client */
-	client = golioth_client_create(client_config);
+	s_client = golioth_client_create(client_config);
 
 	/* Register Golioth on_connect callback */
-	golioth_client_register_event_callback(client, on_client_event, NULL);
+	golioth_client_register_event_callback(s_client, on_client_event, NULL);
 
 	/* Initialize DFU components */
-	golioth_fw_update_init(client, _current_version);
+	golioth_fw_update_init(s_client, s_current_version);
 
 	/*** Call Golioth APIs for other services in dedicated app files ***/
 
 	/* Set Golioth Client for streaming sensor data */
-	app_sensors_set_client(client);
+	app_sensors_set_client(s_client);
 
 	/* Register Settings service */
-	app_settings_register(client);
+	app_settings_register(s_client);
 }
 
 static void lte_handler(const struct lte_lc_evt *const evt)
@@ -96,7 +96,7 @@ static void lte_handler(const struct lte_lc_evt *const evt)
 		if ((evt->nw_reg_status == LTE_LC_NW_REG_REGISTERED_HOME) ||
 		    (evt->nw_reg_status == LTE_LC_NW_REG_REGISTERED_ROAMING)) {
 
-			if (!client) {
+			if (!s_client) {
 				/* Create and start a Golioth Client */
 				start_golioth_client();
 			}
@@ -107,7 +107,7 @@ static void lte_handler(const struct lte_lc_evt *const evt)
 int main(void)
 {
 	/* Get system thread id so measurement interval changes can wake main */
-	_system_thread = k_current_get();
+	s_system_thread = k_current_get();
 
 	/* Start LTE asynchronously if the nRF9160 is used.
 	 * Golioth Client will start automatically when LTE connects.
