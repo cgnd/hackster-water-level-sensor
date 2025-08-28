@@ -50,7 +50,7 @@ static void on_client_event(struct golioth_client *client, enum golioth_client_e
 	LOG_INF("Golioth client %s", is_connected ? "connected" : "disconnected");
 }
 
-static void start_golioth_client(void)
+static void golioth_client_init(void)
 {
 #if RUNTIME_PSK_AUTH
 	/* Get the client configuration from auto-loaded settings */
@@ -80,13 +80,11 @@ static void start_golioth_client(void)
 	/* Initialize DFU components */
 	golioth_fw_update_init(s_client, s_current_version);
 
-	/*** Call Golioth APIs for other services in dedicated app files ***/
+	/* Initialize app settings module */
+	app_settings_init(s_client);
 
-	/* Set Golioth Client for streaming sensor data */
-	app_sensors_set_client(s_client);
-
-	/* Register Settings service */
-	app_settings_register(s_client);
+	/* Initialize app sensors module */
+	app_sensors_init(s_client);
 }
 
 static void lte_handler(const struct lte_lc_evt *const evt)
@@ -98,7 +96,7 @@ static void lte_handler(const struct lte_lc_evt *const evt)
 
 			if (!s_client) {
 				/* Create and start a Golioth Client */
-				start_golioth_client();
+				golioth_client_init();
 			}
 		}
 	}

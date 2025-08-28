@@ -16,6 +16,7 @@
 
 LOG_MODULE_REGISTER(app_settings, CONFIG_APP_LOG_LEVEL);
 
+static struct golioth_settings *s_settings;
 static int32_t s_stream_delay_s = CONFIG_APP_STREAM_DELAY_S;
 static float s_float_length = FLOAT_LENGTH_DEFAULT;
 static float s_float_offset = FLOAT_OFFSET_DEFAULT;
@@ -161,10 +162,15 @@ static void check_register_settings_error_and_log(int err, const char *settings_
 	LOG_ERR("Failed to register settings callback for %s: %d", settings_str, err);
 }
 
-void app_settings_register(struct golioth_client *client)
+void app_settings_init(struct golioth_client *client)
 {
-	struct golioth_settings *settings = golioth_settings_init(client);
 	int err;
+
+	if (s_settings) {
+		golioth_settings_deinit(s_settings);
+	}
+
+	s_settings = golioth_settings_init(client);
 
 	err = golioth_settings_register_int_with_range(s_settings, "STREAM_DELAY_S",
 						       STREAM_DELAY_S_MIN, STREAM_DELAY_S_MAX,
