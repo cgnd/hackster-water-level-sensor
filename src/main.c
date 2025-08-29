@@ -12,6 +12,7 @@
 #include <modem/lte_lc.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/kernel.h>
+#include <zephyr/pm/device.h>
 
 #include "app_settings.h"
 #include "app_sensors.h"
@@ -30,6 +31,7 @@ static const char *s_current_version =
 	STRINGIFY(APP_VERSION_MAJOR) "." STRINGIFY(APP_VERSION_MINOR) "." STRINGIFY(APP_PATCHLEVEL);
 static struct golioth_client *s_client;
 static k_tid_t s_system_thread;
+static const struct device *const s_flash_ext_dev = DEVICE_DT_GET(DT_ALIAS(spi_flash0));
 
 K_SEM_DEFINE(connected_sem, 0, 1);
 K_SEM_DEFINE(ota_sem, 0, 1);
@@ -186,6 +188,11 @@ int main(void)
 	/* Start LTE asynchronously if the nRF9160 is used.
 	 * Golioth Client will start automatically when LTE connects.
 	 */
+
+	if (device_is_ready(s_flash_ext_dev)) {
+		/* Suspend external flash to save power */
+		pm_device_action_run(s_flash_ext_dev, PM_DEVICE_ACTION_SUSPEND);
+	}
 
 	LOG_INF("Connecting to LTE, this may take some time...");
 	lte_lc_connect_async(lte_handler);
