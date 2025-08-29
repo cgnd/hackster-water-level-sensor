@@ -41,6 +41,22 @@ void wake_system_thread(void)
 	k_wakeup(s_system_thread);
 }
 
+static void spi_flash_suspend(void)
+{
+	if (device_is_ready(s_flash_ext_dev)) {
+		/* Suspend external flash */
+		pm_device_action_run(s_flash_ext_dev, PM_DEVICE_ACTION_SUSPEND);
+	}
+}
+
+static void spi_flash_resume(void)
+{
+	if (device_is_ready(s_flash_ext_dev)) {
+		/* Resume external flash */
+		pm_device_action_run(s_flash_ext_dev, PM_DEVICE_ACTION_RESUME);
+	}
+}
+
 static void on_client_event(struct golioth_client *client, enum golioth_client_event event,
 			    void *arg)
 {
@@ -189,11 +205,6 @@ int main(void)
 	 * Golioth Client will start automatically when LTE connects.
 	 */
 
-	if (device_is_ready(s_flash_ext_dev)) {
-		/* Suspend external flash to save power */
-		pm_device_action_run(s_flash_ext_dev, PM_DEVICE_ACTION_SUSPEND);
-	}
-
 	LOG_INF("Connecting to LTE, this may take some time...");
 	lte_lc_connect_async(lte_handler);
 
@@ -205,6 +216,8 @@ int main(void)
 	app_settings_wait_ready();
 
 	while (true) {
+		spi_flash_resume();
+
 		/*
 		 * Since the CoAP keepalive is disabled, the connection to
 		 * Golioth will be dropped when the LTE link goes down (e.g.
@@ -237,6 +250,9 @@ int main(void)
 		if (k_sem_count_get(&ota_sem) == 0) {
 			/* Only stop the client when OTA is in the idle state */
 			golioth_client_stop(s_client);
+
+			/* Suspend external flash to save power */
+			spi_flash_suspend();
 		}
 
 		k_sleep(K_SECONDS(get_stream_delay_s()));
