@@ -126,14 +126,14 @@ static void calculate_tilt(struct accel_xyz *accel_data, struct tilt_sensor *til
 static void calculate_water_level(struct tilt_sensor *tilt_data,
 				  struct water_level_sensor *water_level_data)
 {
-	double float_length = (double)get_float_length();
-	double float_offset = (double)get_float_offset();
+	double float_length_in = (double)get_float_length_in();
+	double float_offset_in = (double)get_float_offset_in();
 	double pitch_rad = tilt_data->pitch_rad;
 
 	/* Calculate the height of the float relative to the hinge */
-	water_level_data->float_length = float_length;
-	water_level_data->float_offset = float_offset;
-	water_level_data->float_height = float_length * sin(pitch_rad) + float_offset;
+	water_level_data->float_length_in = float_length_in;
+	water_level_data->float_offset_in = float_offset_in;
+	water_level_data->float_height_in = float_length_in * sin(pitch_rad) + float_offset_in;
 }
 
 static int encode_accel_data(zcbor_state_t *zse, struct accel_xyz *accel_data)
@@ -203,11 +203,11 @@ static int encode_water_level_sensor_data(zcbor_state_t *zse,
 	}
 
 	ok = zcbor_tstr_put_lit(zse, "float_length") &&
-	     zcbor_float64_put(zse, water_level_data->float_length) &&
+	     zcbor_float64_put(zse, water_level_data->float_length_in) &&
 	     zcbor_tstr_put_lit(zse, "float_offset") &&
-	     zcbor_float64_put(zse, water_level_data->float_offset) &&
+	     zcbor_float64_put(zse, water_level_data->float_offset_in) &&
 	     zcbor_tstr_put_lit(zse, "float_height") &&
-	     zcbor_float64_put(zse, water_level_data->float_height);
+	     zcbor_float64_put(zse, water_level_data->float_height_in);
 	if (!ok) {
 		LOG_ERR("ZCBOR failed to encode water_level data");
 		return -1;
@@ -306,12 +306,12 @@ void app_sensors_read_and_stream(void)
 	calculate_tilt(&accel_data, &tilt_data);
 	calculate_water_level(&tilt_data, &water_level_data);
 
-	LOG_DBG("X: %.6f; Y: %.6f; Z: %.6f", accel_data.x, accel_data.y, accel_data.z);
-	LOG_DBG("roll: %.2f°, pitch: %.2f°", rad_to_deg(tilt_data.roll_rad),
+	LOG_INF("X: %.6f; Y: %.6f; Z: %.6f", accel_data.x, accel_data.y, accel_data.z);
+	LOG_INF("roll: %.2f°, pitch: %.2f°", rad_to_deg(tilt_data.roll_rad),
 		rad_to_deg(tilt_data.pitch_rad));
-	LOG_DBG("float length: %.2f in, float offset: %.2f in, float height: %.2f in",
-		water_level_data.float_length, water_level_data.float_offset,
-		water_level_data.float_height);
+	LOG_INF("float length: %.2f in, float offset: %.2f in, float height: %.2f in",
+		water_level_data.float_length_in, water_level_data.float_offset_in,
+		water_level_data.float_height_in);
 
 	/* Only stream sensor data if connected */
 	if (golioth_client_is_connected(s_client)) {

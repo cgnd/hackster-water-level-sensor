@@ -17,8 +17,8 @@ void app_settings_init(struct golioth_client *client);
 bool app_settings_ready(void);
 void app_settings_wait_ready(void);
 int32_t get_stream_delay_s(void);
-float get_float_length(void);
-float get_float_offset(void);
+float get_float_length_in(void);
+float get_float_offset_in(void);
 int32_t get_accel_num_samples(void);
 int32_t get_accel_sample_delay_ms(void);
 
