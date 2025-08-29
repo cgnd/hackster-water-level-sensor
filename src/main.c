@@ -89,16 +89,72 @@ static void golioth_client_init(void)
 
 static void lte_handler(const struct lte_lc_evt *const evt)
 {
-	if (evt->type == LTE_LC_EVT_NW_REG_STATUS) {
-
+	switch (evt->type) {
+	case LTE_LC_EVT_NW_REG_STATUS:
 		if ((evt->nw_reg_status == LTE_LC_NW_REG_REGISTERED_HOME) ||
 		    (evt->nw_reg_status == LTE_LC_NW_REG_REGISTERED_ROAMING)) {
+			LOG_INF("LTE network registration status: %s",
+				evt->nw_reg_status == LTE_LC_NW_REG_REGISTERED_HOME
+					? "Registered, home network"
+					: "Registered, roaming");
 
 			if (!s_client) {
 				/* Create and start a Golioth Client */
 				golioth_client_init();
 			}
 		}
+		break;
+	case LTE_LC_EVT_LTE_MODE_UPDATE:
+		LOG_INF("LTE mode: %s",
+			(evt->lte_mode == LTE_LC_LTE_MODE_LTEM) ? "LTE-M" : "NB-IoT");
+		break;
+	case LTE_LC_EVT_RRC_UPDATE:
+		LOG_INF("LTE RRC connection state: %s",
+			(evt->rrc_mode == LTE_LC_RRC_MODE_CONNECTED) ? "Connected" : "Idle");
+		break;
+#if defined(CONFIG_LTE_LC_PSM_MODULE)
+	case LTE_LC_EVT_PSM_UPDATE:
+		LOG_INF("LTE PSM parameter update: TAU: %d s, Active time: %d s", evt->psm_cfg.tau,
+			evt->psm_cfg.active_time);
+		break;
+#endif
+#if defined(CONFIG_LTE_LC_TAU_PRE_WARNING_MODULE)
+	case LTE_LC_EVT_TAU_PRE_WARNING:
+		LOG_INF("LTE modem will perform a Tracking Area Update in %lld ms", evt->time);
+		break;
+#endif
+#if defined(CONFIG_LTE_LC_MODEM_SLEEP_NOTIFICATIONS)
+	case LTE_LC_EVT_MODEM_SLEEP_EXIT_PRE_WARNING:
+		LOG_INF("LTE modem will exit sleep in %lld ms", evt->modem_sleep.time);
+		break;
+	case LTE_LC_EVT_MODEM_SLEEP_EXIT:
+		LOG_INF("LTE modem exited sleep after %lld ms", evt->modem_sleep.time);
+		break;
+	case LTE_LC_EVT_MODEM_SLEEP_ENTER:
+		// lte_modem_enter_sleep(&evt->modem_sleep);
+		switch (evt->modem_sleep.type) {
+		case LTE_LC_MODEM_SLEEP_PSM:
+		case LTE_LC_MODEM_SLEEP_PROPRIETARY_PSM:
+			LOG_INF("LTE modem entered PSM sleep for %lld ms", evt->modem_sleep.time);
+			break;
+		case LTE_LC_MODEM_SLEEP_RF_INACTIVITY:
+			LOG_INF("LTE modem entered eDRX sleep, time %lld", evt->modem_sleep.time);
+			break;
+		case LTE_LC_MODEM_SLEEP_LIMITED_SERVICE:
+			LOG_INF("LTE modem entered limited service sleep, time %lld",
+				evt->modem_sleep.time);
+			break;
+		case LTE_LC_MODEM_SLEEP_FLIGHT_MODE:
+			LOG_INF("LTE modem entered flight mode sleep, time %lld",
+				evt->modem_sleep.time);
+			break;
+		default:
+			break;
+		}
+		break;
+#endif
+	default:
+		break;
 	}
 }
 
