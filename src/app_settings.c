@@ -37,21 +37,23 @@ static bool s_accel_sample_delay_ms_registered = false;
 
 K_SEM_DEFINE(registration_completed_sem, 0, 1);
 
-bool app_settings_ready(void)
+bool app_settings_registration_status(void)
 {
 	return s_stream_delay_s_registered && s_float_length_registered &&
 	       s_float_offset_registered && s_accel_num_samples_registered &&
 	       s_accel_sample_delay_ms_registered;
 }
 
-static void check_registration_status(void)
+void app_settings_registration_status_reset(void)
 {
-	if (app_settings_ready()) {
-		k_sem_give(&registration_completed_sem);
-	}
+	s_stream_delay_s_registered = false;
+	s_float_length_registered = false;
+	s_float_offset_registered = false;
+	s_accel_num_samples_registered = false;
+	s_accel_sample_delay_ms_registered = false;
 }
 
-void app_settings_wait_ready(void)
+void app_settings_registration_status_wait(void)
 {
 	LOG_INF("Waiting for settings to be registered...");
 
@@ -59,6 +61,13 @@ void app_settings_wait_ready(void)
 	k_sem_take(&registration_completed_sem, K_FOREVER);
 
 	LOG_INF("All settings registered successfully");
+}
+
+static void check_registration_status(void)
+{
+	if (app_settings_registration_status()) {
+		k_sem_give(&registration_completed_sem);
+	}
 }
 
 int32_t get_stream_delay_s(void)
@@ -176,6 +185,8 @@ void app_settings_init(struct golioth_client *client)
 	if (s_settings) {
 		golioth_settings_deinit(s_settings);
 	}
+
+	app_settings_registration_status_reset();
 
 	s_settings = golioth_settings_init(client);
 

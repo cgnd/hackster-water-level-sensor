@@ -212,9 +212,6 @@ int main(void)
 	LOG_INF("Connecting to Golioth...");
 	k_sem_take(&connected_sem, K_FOREVER);
 
-	/* Wait for all app settings to be registered and synchronized */
-	app_settings_wait_ready();
-
 	while (true) {
 		spi_flash_resume();
 
@@ -232,21 +229,15 @@ int main(void)
 		 * OTA are not missed.
 		 */
 		if (!golioth_client_is_running(s_client)) {
+			app_settings_registration_status_reset();
 			golioth_client_start(s_client);
 		}
 
+		/* Wait for all settings to be registered and synchronized */
+		app_settings_registration_status_wait();
+
 		app_sensors_read_and_stream();
 
-		/*
-		 * TODO: this is only checking the status of the OTA service,
-		 * but it may also be necessary to check the status of other
-		 * services that rely on CoAP observations, such as Settings.
-		 * Right now, there doesn't appear to be a way to check whether
-		 * there are pending changes to observed settings that still
-		 * need to be received. The assumption is that any settings
-		 * changes should have been received when the client was
-		 * started.
-		 */
 		if (k_sem_count_get(&ota_sem) == 0) {
 			/* Only stop the client when OTA is in the idle state */
 			golioth_client_stop(s_client);
