@@ -328,8 +328,10 @@ void app_sensors_read_and_stream(void)
 					       cbor_buf, cbor_size, async_error_handler, NULL);
 		if (err) {
 			LOG_ERR("Failed to send sensor data to Golioth: %d", err);
+		} else {
+			LOG_INF("Sent sensor data to Golioth");
 		}
 	} else {
-		LOG_WRN("No connection available, skipping sending data to Golioth");
+		LOG_WRN("No connection available, skipping sending sensor data to Golioth");
 	}
 }
