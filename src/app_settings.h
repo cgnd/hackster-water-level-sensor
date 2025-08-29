@@ -14,8 +14,9 @@
 #include <golioth/client.h>
 
 void app_settings_init(struct golioth_client *client);
-bool app_settings_ready(void);
-void app_settings_wait_ready(void);
+bool app_settings_registration_status(void);
+void app_settings_registration_status_reset(void);
+void app_settings_registration_status_wait(void);
 int32_t get_stream_delay_s(void);
 float get_float_length_in(void);
 float get_float_offset_in(void);

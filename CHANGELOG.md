@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Ensure settings are registered and synchronized before reading sensors
 - Enable external flash when the device is not sleeping (needs to be enabled for OTA)
 
 ## [2.2.2] - 2025-08-28
