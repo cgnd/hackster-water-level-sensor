@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Fix a bug when settings registration status is reset
 - Set Golioth client CoAP RX timeout larger than stream delay
 
 ## [2.2.3] - 2025-08-29

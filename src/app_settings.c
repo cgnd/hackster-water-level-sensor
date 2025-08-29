@@ -51,6 +51,7 @@ void app_settings_registration_status_reset(void)
 	s_float_offset_registered = false;
 	s_accel_num_samples_registered = false;
 	s_accel_sample_delay_ms_registered = false;
+	k_sem_reset(&registration_completed_sem);
 }
 
 void app_settings_registration_status_wait(void)
