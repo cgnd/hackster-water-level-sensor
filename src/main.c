@@ -28,11 +28,11 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 /* Current firmware version; update in VERSION */
 static const char *s_current_version =
 	STRINGIFY(APP_VERSION_MAJOR) "." STRINGIFY(APP_VERSION_MINOR) "." STRINGIFY(APP_PATCHLEVEL);
-
 static struct golioth_client *s_client;
-K_SEM_DEFINE(connected_sem, 0, 1);
-
 static k_tid_t s_system_thread;
+
+K_SEM_DEFINE(connected_sem, 0, 1);
+K_SEM_DEFINE(ota_sem, 0, 1);
 
 void wake_system_thread(void)
 {
@@ -48,6 +48,25 @@ static void on_client_event(struct golioth_client *client, enum golioth_client_e
 		k_sem_give(&connected_sem);
 	}
 	LOG_INF("Golioth client %s", is_connected ? "connected" : "disconnected");
+}
+
+static void on_fw_update_state_change(enum golioth_ota_state state, enum golioth_ota_reason reason,
+				      void *user_arg)
+{
+	switch (state) {
+	case GOLIOTH_OTA_STATE_IDLE:
+		k_sem_reset(&ota_sem);
+		break;
+	case GOLIOTH_OTA_STATE_DOWNLOADING:
+		__fallthrough;
+	case GOLIOTH_OTA_STATE_DOWNLOADED:
+		__fallthrough;
+	case GOLIOTH_OTA_STATE_UPDATING:
+		k_sem_give(&ota_sem);
+		break;
+	default:
+		break;
+	}
 }
 
 static void golioth_client_init(void)
@@ -79,6 +98,7 @@ static void golioth_client_init(void)
 
 	/* Initialize DFU components */
 	golioth_fw_update_init(s_client, s_current_version);
+	golioth_fw_update_register_state_change_callback(on_fw_update_state_change, NULL);
 
 	/* Initialize app settings module */
 	app_settings_init(s_client);
@@ -197,7 +217,20 @@ int main(void)
 
 		app_sensors_read_and_stream();
 
-		golioth_client_stop(s_client);
+		/*
+		 * TODO: this is only checking the status of the OTA service,
+		 * but it may also be necessary to check the status of other
+		 * services that rely on CoAP observations, such as Settings.
+		 * Right now, there doesn't appear to be a way to check whether
+		 * there are pending changes to observed settings that still
+		 * need to be received. The assumption is that any settings
+		 * changes should have been received when the client was
+		 * started.
+		 */
+		if (k_sem_count_get(&ota_sem) == 0) {
+			/* Only stop the client when OTA is in the idle state */
+			golioth_client_stop(s_client);
+		}
 
 		k_sleep(K_SECONDS(get_stream_delay_s()));
 	}
