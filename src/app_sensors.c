@@ -44,6 +44,11 @@ static void async_error_handler(struct golioth_client *client, enum golioth_stat
 	}
 }
 
+static inline double rad_to_deg(double rad)
+{
+	return rad * (180.0 / M_PI);
+}
+
 static int read_accel_sensor(struct accel_xyz *accel_data)
 {
 	struct sensor_value accel_x;
@@ -103,10 +108,8 @@ static void calculate_tilt(struct accel_xyz *accel_data, struct tilt_sensor *til
 	 * 2. The Thingy:91 X is installed with the USB connector pointing down
 	 *    the pivot arm in the direction of the float.
 	 */
-	tilt_data->roll = -atan2(x, sqrt(y * y + z * z));
-	tilt_data->roll_deg = tilt_data->roll * 180.0 / M_PI;
-	tilt_data->pitch = -atan2(y, sqrt(x * x + z * z));
-	tilt_data->pitch_deg = tilt_data->pitch * 180.0 / M_PI;
+	tilt_data->roll_rad = -atan2(x, sqrt(y * y + z * z));
+	tilt_data->pitch_rad = -atan2(y, sqrt(x * x + z * z));
 }
 
 static void calculate_water_level(struct tilt_sensor *tilt_data,
@@ -114,12 +117,12 @@ static void calculate_water_level(struct tilt_sensor *tilt_data,
 {
 	double float_length = (double)get_float_length();
 	double float_offset = (double)get_float_offset();
-	double pitch = tilt_data->pitch;
+	double pitch_rad = tilt_data->pitch_rad;
 
 	/* Calculate the height of the float relative to the hinge */
 	water_level_data->float_length = float_length;
 	water_level_data->float_offset = float_offset;
-	water_level_data->float_height = float_length * sin(pitch) + float_offset;
+	water_level_data->float_height = float_length * sin(pitch_rad) + float_offset;
 }
 
 static int encode_accel_data(zcbor_state_t *zse, struct accel_xyz *accel_data)
@@ -159,8 +162,10 @@ static int encode_tilt_sensor_data(zcbor_state_t *zse, struct tilt_sensor *tilt_
 		return -1;
 	}
 
-	ok = zcbor_tstr_put_lit(zse, "pitch") && zcbor_float64_put(zse, tilt_data->pitch_deg) &&
-	     zcbor_tstr_put_lit(zse, "roll") && zcbor_float64_put(zse, tilt_data->roll_deg);
+	ok = zcbor_tstr_put_lit(zse, "pitch") &&
+	     zcbor_float64_put(zse, rad_to_deg(tilt_data->pitch_rad)) &&
+	     zcbor_tstr_put_lit(zse, "roll") &&
+	     zcbor_float64_put(zse, rad_to_deg(tilt_data->roll_rad));
 	if (!ok) {
 		LOG_ERR("ZCBOR failed to encode tilt data");
 		return -1;
@@ -291,7 +296,8 @@ void app_sensors_read_and_stream(void)
 	calculate_water_level(&tilt_data, &water_level_data);
 
 	LOG_DBG("X: %.6f; Y: %.6f; Z: %.6f", accel_data.x, accel_data.y, accel_data.z);
-	LOG_DBG("roll: %.2f°, pitch: %.2f°", tilt_data.roll_deg, tilt_data.pitch_deg);
+	LOG_DBG("roll: %.2f°, pitch: %.2f°", rad_to_deg(tilt_data.roll_rad),
+		rad_to_deg(tilt_data.pitch_rad));
 	LOG_DBG("float length: %.2f in, float offset: %.2f in, float height: %.2f in",
 		water_level_data.float_length, water_level_data.float_offset,
 		water_level_data.float_height);

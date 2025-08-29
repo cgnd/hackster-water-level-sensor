@@ -17,10 +17,8 @@ struct accel_xyz {
 };
 
 struct tilt_sensor {
-	double pitch;
-	double pitch_deg;
-	double roll;
-	double roll_deg;
+	double pitch_rad;
+	double roll_rad;
 };
 
 struct water_level_sensor {
