@@ -178,7 +178,26 @@ int main(void)
 	app_settings_wait_ready();
 
 	while (true) {
+		/*
+		 * Since the CoAP keepalive is disabled, the connection to
+		 * Golioth will be dropped when the LTE link goes down (e.g.
+		 * when PSM is entered). While the device is sleeping, any
+		 * services that have active CoAP observations will not receive
+		 * notifications. To ensure that the observations are received
+		 * eventually, the client is started and stopped each time the
+		 * system wakes up, which re-registers the observations. This is
+		 * not ideal for power consumption because it requires a full
+		 * DTLS handshake each time, but it avoids the need for a
+		 * frequent keepalive to ensure observations for settings and
+		 * OTA are not missed.
+		 */
+		if (!golioth_client_is_running(s_client)) {
+			golioth_client_start(s_client);
+		}
+
 		app_sensors_read_and_stream();
+
+		golioth_client_stop(s_client);
 
 		k_sleep(K_SECONDS(get_stream_delay_s()));
 	}
