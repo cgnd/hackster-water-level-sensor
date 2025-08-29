@@ -16,10 +16,17 @@
 
 LOG_MODULE_REGISTER(app_settings, CONFIG_APP_LOG_LEVEL);
 
+#define STREAM_DELAY_S_MIN	  1
+#define STREAM_DELAY_S_MAX	  86400 /* 24 hours */
+#define ACCEL_NUM_SAMPLES_MIN	  1
+#define ACCEL_NUM_SAMPLES_MAX	  INT32_MAX
+#define ACCEL_SAMPLE_DELAY_MS_MIN 0
+#define ACCEL_SAMPLE_DELAY_MS_MAX INT32_MAX
+
 static struct golioth_settings *s_settings;
 static int32_t s_stream_delay_s = CONFIG_APP_STREAM_DELAY_S;
-static float s_float_length = FLOAT_LENGTH_DEFAULT;
-static float s_float_offset = FLOAT_OFFSET_DEFAULT;
+static float s_float_length_in = 0.0;
+static float s_float_offset_in = 0.0;
 static int32_t s_accel_num_samples = CONFIG_APP_ACCEL_NUM_SAMPLES;
 static int32_t s_accel_sample_delay_ms = CONFIG_ACCEL_SAMPLE_DELAY_MS;
 static bool s_stream_delay_s_registered = false;

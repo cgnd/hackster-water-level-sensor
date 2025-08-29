@@ -19,9 +19,20 @@
 #include <zephyr/logging/log.h>
 
 #include "app_settings.h"
-#include "math_constants.h"
 
 LOG_MODULE_REGISTER(app_sensors, CONFIG_APP_LOG_LEVEL);
+
+/*
+ * By default, picolibc is built for Zephyr with the _ZEPHYR_SOURCE feature test
+ * macro unless some other API indicator (like _XOPEN_SOURCE) is set. As a
+ * result, this does not include some useful math constants like M_PI.
+ *
+ * See picolibc/newlib/libc/include/sys/features.h and
+ * https://github.com/zephyrproject-rtos/zephyr/issues/66909 for more details.
+ */
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 static struct golioth_client *s_client;
 

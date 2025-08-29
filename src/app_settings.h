@@ -13,15 +13,6 @@
 
 #include <golioth/client.h>
 
-#define STREAM_DELAY_S_MIN	      1
-#define STREAM_DELAY_S_MAX	      86400 /* 24 hours */
-#define FLOAT_LENGTH_DEFAULT	      0.0
-#define FLOAT_OFFSET_DEFAULT	      0.0
-#define ACCEL_NUM_SAMPLES_MIN	      1
-#define ACCEL_NUM_SAMPLES_MAX	      INT32_MAX
-#define ACCEL_SAMPLE_DELAY_MS_MIN     0
-#define ACCEL_SAMPLE_DELAY_MS_MAX     INT32_MAX
-
 void app_settings_init(struct golioth_client *client);
 bool app_settings_ready(void);
 void app_settings_wait_ready(void);
