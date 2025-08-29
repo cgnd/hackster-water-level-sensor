@@ -22,9 +22,9 @@ struct tilt_sensor {
 };
 
 struct water_level_sensor {
-	double float_length;
-	double float_offset;
-	double float_height;
+	double float_length_in;
+	double float_offset_in;
+	double float_height_in;
 };
 
 void app_sensors_init(struct golioth_client *client);

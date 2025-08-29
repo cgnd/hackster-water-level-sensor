@@ -66,14 +66,14 @@ int32_t get_stream_delay_s(void)
 	return s_stream_delay_s;
 }
 
-float get_float_length(void)
+float get_float_length_in(void)
 {
-	return s_float_length;
+	return s_float_length_in;
 }
 
-float get_float_offset(void)
+float get_float_offset_in(void)
 {
-	return s_float_offset;
+	return s_float_offset_in;
 }
 
 int32_t get_accel_num_samples(void)
@@ -102,28 +102,28 @@ static enum golioth_settings_status on_stream_delay_s_setting(int32_t new_value,
 	return GOLIOTH_SETTINGS_SUCCESS;
 }
 
-static enum golioth_settings_status on_float_length_setting(float new_value, void *arg)
+static enum golioth_settings_status on_float_length_in_setting(float new_value, void *arg)
 {
 	/* Only update if value has changed */
-	if (s_float_length == new_value) {
+	if (s_float_length_in == new_value) {
 		LOG_DBG("Received FLOAT_LENGTH setting already matches local value.");
 	} else {
-		s_float_length = new_value;
-		LOG_INF("Set FLOAT_LENGTH setting to %.6f inches", (double)s_float_length);
+		s_float_length_in = new_value;
+		LOG_INF("Set FLOAT_LENGTH setting to %.6f inches", (double)s_float_length_in);
 	}
 	s_float_length_registered = true;
 	check_registration_status();
 	return GOLIOTH_SETTINGS_SUCCESS;
 }
 
-static enum golioth_settings_status on_float_offset_setting(float new_value, void *arg)
+static enum golioth_settings_status on_float_offset_in_setting(float new_value, void *arg)
 {
 	/* Only update if value has changed */
-	if (s_float_offset == new_value) {
+	if (s_float_offset_in == new_value) {
 		LOG_DBG("Received FLOAT_OFFSET setting already matches local value.");
 	} else {
-		s_float_offset = new_value;
-		LOG_INF("Set FLOAT_OFFSET setting to %.6f inches", (double)s_float_offset);
+		s_float_offset_in = new_value;
+		LOG_INF("Set FLOAT_OFFSET setting to %.6f inches", (double)s_float_offset_in);
 	}
 	s_float_offset_registered = true;
 	check_registration_status();
@@ -184,12 +184,12 @@ void app_settings_init(struct golioth_client *client)
 						       on_stream_delay_s_setting, NULL);
 	check_register_settings_error_and_log(err, "STREAM_DELAY_S");
 
-	err = golioth_settings_register_float(s_settings, "FLOAT_LENGTH", on_float_length_setting,
-					      NULL);
+	err = golioth_settings_register_float(s_settings, "FLOAT_LENGTH",
+					      on_float_length_in_setting, NULL);
 	check_register_settings_error_and_log(err, "FLOAT_LENGTH");
 
-	err = golioth_settings_register_float(s_settings, "FLOAT_OFFSET", on_float_offset_setting,
-					      NULL);
+	err = golioth_settings_register_float(s_settings, "FLOAT_OFFSET",
+					      on_float_offset_in_setting, NULL);
 	check_register_settings_error_and_log(err, "FLOAT_OFFSET");
 
 	err = golioth_settings_register_int_with_range(s_settings, "ACCEL_NUM_SAMPLES",
