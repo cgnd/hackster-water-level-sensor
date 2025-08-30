@@ -33,8 +33,8 @@ static struct golioth_client *s_client;
 static k_tid_t s_system_thread;
 static const struct device *const s_flash_ext_dev = DEVICE_DT_GET(DT_ALIAS(spi_flash0));
 
-K_SEM_DEFINE(connected_sem, 0, 1);
-K_SEM_DEFINE(ota_sem, 0, 1);
+K_SEM_DEFINE(lte_connected_sem, 0, 1);
+K_SEM_DEFINE(golioth_ota_sem, 0, 1);
 
 void wake_system_thread(void)
 {
@@ -60,12 +60,17 @@ static void spi_flash_resume(void)
 static void on_client_event(struct golioth_client *client, enum golioth_client_event event,
 			    void *arg)
 {
-	bool is_connected = (event == GOLIOTH_CLIENT_EVENT_CONNECTED);
-
-	if (is_connected) {
-		k_sem_give(&connected_sem);
+	switch (event) {
+	case GOLIOTH_CLIENT_EVENT_CONNECTED:
+		LOG_INF("Golioth client connected");
+		break;
+	case GOLIOTH_CLIENT_EVENT_DISCONNECTED:
+		LOG_INF("Golioth client disconnected");
+		app_settings_invalidate();
+		break;
+	default:
+		break;
 	}
-	LOG_INF("Golioth client %s", is_connected ? "connected" : "disconnected");
 }
 
 static void on_fw_update_state_change(enum golioth_ota_state state, enum golioth_ota_reason reason,
@@ -73,14 +78,14 @@ static void on_fw_update_state_change(enum golioth_ota_state state, enum golioth
 {
 	switch (state) {
 	case GOLIOTH_OTA_STATE_IDLE:
-		k_sem_reset(&ota_sem);
+		k_sem_reset(&golioth_ota_sem);
 		break;
 	case GOLIOTH_OTA_STATE_DOWNLOADING:
 		__fallthrough;
 	case GOLIOTH_OTA_STATE_DOWNLOADED:
 		__fallthrough;
 	case GOLIOTH_OTA_STATE_UPDATING:
-		k_sem_give(&ota_sem);
+		k_sem_give(&golioth_ota_sem);
 		break;
 	default:
 		break;
@@ -135,11 +140,7 @@ static void lte_handler(const struct lte_lc_evt *const evt)
 				evt->nw_reg_status == LTE_LC_NW_REG_REGISTERED_HOME
 					? "Registered, home network"
 					: "Registered, roaming");
-
-			if (!s_client) {
-				/* Create and start a Golioth Client */
-				golioth_client_init();
-			}
+			k_sem_give(&lte_connected_sem);
 		}
 		break;
 	case LTE_LC_EVT_LTE_MODE_UPDATE:
@@ -201,44 +202,44 @@ int main(void)
 	/* Get system thread id so measurement interval changes can wake main */
 	s_system_thread = k_current_get();
 
-	/* Start LTE asynchronously if the nRF9160 is used.
-	 * Golioth Client will start automatically when LTE connects.
-	 */
-
+	/* Wait for LTE connection */
 	LOG_INF("Connecting to LTE, this may take some time...");
 	lte_lc_connect_async(lte_handler);
+	k_sem_take(&lte_connected_sem, K_FOREVER);
 
-	/* Wait for connection to Golioth */
-	LOG_INF("Connecting to Golioth...");
-	k_sem_take(&connected_sem, K_FOREVER);
+	/* Create and start a Golioth Client */
+	golioth_client_init();
 
 	while (true) {
+		/* Turn on external SPI flash so it can be used for OTA */
 		spi_flash_resume();
 
 		/*
-		 * Since the CoAP keepalive is disabled, the connection to
-		 * Golioth will be dropped when the LTE link goes down (e.g.
-		 * when PSM is entered). While the device is sleeping, any
-		 * services that have active CoAP observations will not receive
-		 * notifications. To ensure that the observations are received
-		 * eventually, the client is started and stopped each time the
-		 * system wakes up, which re-registers the observations. This is
-		 * not ideal for power consumption because it requires a full
-		 * DTLS handshake each time, but it avoids the need for a
-		 * frequent keepalive to ensure observations for settings and
-		 * OTA are not missed.
+		 * The connection to Golioth will be dropped when the LTE link
+		 * goes down for long periods of time (e.g. when PSM is
+		 * entered). While the device is sleeping, any services that
+		 * have active CoAP observations will not receive notifications.
+		 * To ensure that the observations are received eventually, the
+		 * client is started and stopped each time the system wakes up,
+		 * which re-registers the observations and gets the latest
+		 * values from the server. This is not ideal for power
+		 * consumption because it requires a full DTLS handshake each
+		 * time, but it avoids the need for a frequent keepalive to
+		 * ensure observations for settings and OTA are not missed.
 		 */
 		if (!golioth_client_is_running(s_client)) {
-			app_settings_registration_status_reset();
 			golioth_client_start(s_client);
 		}
 
-		/* Wait for all settings to be registered and synchronized */
-		app_settings_registration_status_wait();
+		LOG_INF("Waiting for connection to Golioth...");
+		golioth_client_wait_for_connect(s_client, CONFIG_APP_GOLIOTH_CONNECT_TIMEOUT_S);
 
-		app_sensors_read_and_stream();
+		/* Only stream sensor data if settings have been received */
+		if (app_settings_wait_for_updates()) {
+			app_sensors_read_and_stream();
+		}
 
-		if (k_sem_count_get(&ota_sem) == 0) {
+		if (k_sem_count_get(&golioth_ota_sem) == 0) {
 			/* Only stop the client when OTA is in the idle state */
 			golioth_client_stop(s_client);
 
