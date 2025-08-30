@@ -27,6 +27,12 @@ config ACCEL_SAMPLE_DELAY_MS
 	help
 	  Delay between reading each accelerometer sample.
 
+config APP_GOLIOTH_CONNECT_TIMEOUT_S
+	int "Golioth connect timeout (in seconds)"
+	default 30
+	help
+	  Timeout for connecting to Golioth.
+
 source "subsys/logging/Kconfig.template.log_config"
 
 if DNS_RESOLVER

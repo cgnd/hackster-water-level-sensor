@@ -29,45 +29,57 @@ static float s_float_length_in = 0.0;
 static float s_float_offset_in = 0.0;
 static int32_t s_accel_num_samples = CONFIG_APP_ACCEL_NUM_SAMPLES;
 static int32_t s_accel_sample_delay_ms = CONFIG_ACCEL_SAMPLE_DELAY_MS;
-static bool s_stream_delay_s_registered = false;
-static bool s_float_length_registered = false;
-static bool s_float_offset_registered = false;
-static bool s_accel_num_samples_registered = false;
-static bool s_accel_sample_delay_ms_registered = false;
+static bool s_stream_delay_s_valid = false;
+static bool s_float_length_valid = false;
+static bool s_float_offset_valid = false;
+static bool s_accel_num_samples_valid = false;
+static bool s_accel_sample_delay_ms_valid = false;
 
-K_SEM_DEFINE(registration_completed_sem, 0, 1);
+K_SEM_DEFINE(settings_valid_sem, 0, 1);
 
-bool app_settings_registration_status(void)
+bool app_settings_are_valid(void)
 {
-	return s_stream_delay_s_registered && s_float_length_registered &&
-	       s_float_offset_registered && s_accel_num_samples_registered &&
-	       s_accel_sample_delay_ms_registered;
+	return s_stream_delay_s_valid && s_float_length_valid && s_float_offset_valid &&
+	       s_accel_num_samples_valid && s_accel_sample_delay_ms_valid;
 }
 
-void app_settings_registration_status_reset(void)
+void app_settings_invalidate(void)
 {
-	s_stream_delay_s_registered = false;
-	s_float_length_registered = false;
-	s_float_offset_registered = false;
-	s_accel_num_samples_registered = false;
-	s_accel_sample_delay_ms_registered = false;
-	k_sem_reset(&registration_completed_sem);
+	s_stream_delay_s_valid = false;
+	s_float_length_valid = false;
+	s_float_offset_valid = false;
+	s_accel_num_samples_valid = false;
+	s_accel_sample_delay_ms_valid = false;
+	k_sem_reset(&settings_valid_sem);
 }
 
-void app_settings_registration_status_wait(void)
+bool app_settings_wait_for_updates(void)
 {
-	LOG_INF("Waiting for settings to be registered...");
+	int ret;
 
-	/* Wait until all settings are registered */
-	k_sem_take(&registration_completed_sem, K_FOREVER);
+	if (app_settings_are_valid()) {
+		LOG_INF("Settings are up to date");
+		return true;
+	}
 
-	LOG_INF("All settings registered successfully");
+	LOG_INF("Waiting for updated settings...");
+	ret = k_sem_take(&settings_valid_sem, K_FOREVER);
+	if (ret == -EAGAIN) {
+		LOG_ERR("Settings were invalidated while waiting for updates");
+		return false;
+	} else if (ret == -EBUSY) {
+		LOG_ERR("Unable to wait for updated settings");
+		return false;
+	} else {
+		LOG_INF("All settings updates have been received");
+		return true;
+	}
 }
 
-static void check_registration_status(void)
+static void validate_settings(void)
 {
-	if (app_settings_registration_status()) {
-		k_sem_give(&registration_completed_sem);
+	if (app_settings_are_valid()) {
+		k_sem_give(&settings_valid_sem);
 	}
 }
 
@@ -107,8 +119,8 @@ static enum golioth_settings_status on_stream_delay_s_setting(int32_t new_value,
 
 		wake_system_thread();
 	}
-	s_stream_delay_s_registered = true;
-	check_registration_status();
+	s_stream_delay_s_valid = true;
+	validate_settings();
 	return GOLIOTH_SETTINGS_SUCCESS;
 }
 
@@ -121,8 +133,8 @@ static enum golioth_settings_status on_float_length_in_setting(float new_value, 
 		s_float_length_in = new_value;
 		LOG_INF("Set FLOAT_LENGTH setting to %.6f inches", (double)s_float_length_in);
 	}
-	s_float_length_registered = true;
-	check_registration_status();
+	s_float_length_valid = true;
+	validate_settings();
 	return GOLIOTH_SETTINGS_SUCCESS;
 }
 
@@ -135,8 +147,8 @@ static enum golioth_settings_status on_float_offset_in_setting(float new_value, 
 		s_float_offset_in = new_value;
 		LOG_INF("Set FLOAT_OFFSET setting to %.6f inches", (double)s_float_offset_in);
 	}
-	s_float_offset_registered = true;
-	check_registration_status();
+	s_float_offset_valid = true;
+	validate_settings();
 	return GOLIOTH_SETTINGS_SUCCESS;
 }
 
@@ -149,8 +161,8 @@ static enum golioth_settings_status on_accel_num_samples_setting(int32_t new_val
 		s_accel_num_samples = new_value;
 		LOG_INF("Set ACCEL_NUM_SAMPLES setting to %i samples", s_accel_num_samples);
 	}
-	s_accel_num_samples_registered = true;
-	check_registration_status();
+	s_accel_num_samples_valid = true;
+	validate_settings();
 	return GOLIOTH_SETTINGS_SUCCESS;
 }
 
@@ -164,8 +176,8 @@ static enum golioth_settings_status on_accel_sample_delay_ms_setting(int32_t new
 		LOG_INF("Set ACCEL_SAMPLE_DELAY_MS setting to %i milliseconds",
 			s_accel_sample_delay_ms);
 	}
-	s_accel_sample_delay_ms_registered = true;
-	check_registration_status();
+	s_accel_sample_delay_ms_valid = true;
+	validate_settings();
 	return GOLIOTH_SETTINGS_SUCCESS;
 }
 
@@ -187,7 +199,7 @@ void app_settings_init(struct golioth_client *client)
 		golioth_settings_deinit(s_settings);
 	}
 
-	app_settings_registration_status_reset();
+	app_settings_invalidate();
 
 	s_settings = golioth_settings_init(client);
 
