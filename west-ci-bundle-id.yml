@@ -1,0 +1,19 @@
+# Copyright (c) 2025 Common Ground Electronics <https://cgnd.dev>
+# SPDX-License-Identifier: Apache-2.0
+
+# This manifest modifies the default workspace defined in west.yml to only
+# include the minimum set of dependencies required to run
+# nrf/scripts/print_toolchain_checksum.sh to get the NCS toolchain bundle ID.
+# The `golioth` SDK dependency defines the `nrf` SDK version in it's own
+# west-ncs.yml manifest, it needs to be included for the `nrf` dependency to be
+# resolved.
+
+manifest:
+  version: 1.0
+
+  self:
+    import:
+      - file: west.yml
+        name-allowlist:
+          - golioth
+          - nrf

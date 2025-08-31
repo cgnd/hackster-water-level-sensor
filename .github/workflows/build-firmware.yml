@@ -1,0 +1,124 @@
+# Copyright (c) 2025 Nordic Semiconductor ASA
+# Copyright (c) 2025 Common Ground Electronics <https://cgnd.dev>
+# SPDX-License-Identifier: Apache-2.0
+
+# Originally adapted from https://github.com/nrfconnect/ncs-example-application/blob/main/.github/workflows/build-using-toolchain-bundle.yml
+
+name: Build Firmware
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  workflow_call:
+
+env:
+  APP_DIR: app
+  APP_NAME: ${{ github.event.repository.name }}
+  ARTIFACTS_DIR: artifacts
+  WEST_WORKSPACE_DIR: west-workspace
+
+jobs:
+  set-build-vars:
+    name: Set Build Variables
+    runs-on: ubuntu-24.04
+    outputs:
+      IMAGE_TAG: ${{ steps.set-image-tag.outputs.IMAGE_TAG }}
+      APP_BUILD_VERSION: ${{ steps.set-app-build-version.outputs.APP_BUILD_VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.WEST_WORKSPACE_DIR }}/${{ env.APP_DIR }}
+          # Needed to get all tags for determining the build version
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Initialize minimal west workspace
+        run: |
+          python3 -m pip install west
+          cd ${{ env.WEST_WORKSPACE_DIR }}
+          west init -l ${{ env.APP_DIR }} --mf west-ci-bundle-id.yml
+          west update -o=--depth=1 -n
+
+      - name: Set docker image tag
+        id: set-image-tag
+        # TODO: Nordic started adding the toolchain bundle ID (checksum) as a
+        # docker image tag in v3.1.0. Previously, the only tag was the nrf SDK
+        # version. When the Golioth SDK upgrades to nrf v3.1.0, this should be
+        # switched over to use the toolchain bundle ID instead of the nrf
+        # version.
+        #
+        # run: |
+        #   cd ${{ env.WEST_WORKSPACE_DIR }}
+        #   IMAGE_TAG="$(./deps/nrf/scripts/print_toolchain_checksum.sh)"
+        #   echo "IMAGE_TAG=$IMAGE_TAG"
+        #   echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+        run: |
+          cd ${{ env.WEST_WORKSPACE_DIR }}
+          IMAGE_TAG="v$(cat ./deps/nrf/VERSION)"
+          echo "IMAGE_TAG=$IMAGE_TAG"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Set app build version
+        id: set-app-build-version
+        run: |
+          cd ${{ env.WEST_WORKSPACE_DIR }}/${{ env.APP_DIR }}
+          APP_BUILD_VERSION=$(git describe --abbrev=12 --always)
+          echo "APP_BUILD_VERSION=$APP_BUILD_VERSION"
+          echo "APP_BUILD_VERSION=$APP_BUILD_VERSION" >> $GITHUB_OUTPUT
+
+  build:
+    name: Build Firmware
+    needs: set-build-vars
+    runs-on: ubuntu-24.04
+    container: ghcr.io/nrfconnect/sdk-nrf-toolchain:${{ needs.set-build-vars.outputs.IMAGE_TAG }}
+    defaults:
+      run:
+        # Bash shell is needed to set toolchain related environment variables in docker container
+        # It is a workaround for GitHub Actions limitation https://github.com/actions/runner/issues/1964
+        shell: bash
+    strategy:
+      matrix:
+        board: ["thingy91x/nrf9151/ns"]
+    steps:
+      - name: Set sanitized board name
+        run: |
+          SANITIZED_BOARD_NAME=$(echo ${{ matrix.board }} | tr '/' '_')
+          echo "SANITIZED_BOARD_NAME=$SANITIZED_BOARD_NAME"
+          echo "SANITIZED_BOARD_NAME=$SANITIZED_BOARD_NAME" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.WEST_WORKSPACE_DIR }}/${{ env.APP_DIR }}
+
+      - name: Initialize west workspace
+        run: |
+          cd ${{ env.WEST_WORKSPACE_DIR }}
+          west init -l ${{ env.APP_DIR }}
+          west update -o=--depth=1 -n
+
+      - name: Build firmware
+        run: |
+          cd ${{ env.WEST_WORKSPACE_DIR }}
+          west build -b ${{ matrix.board }} --pristine=always --sysbuild ${{ env.APP_DIR }}
+
+      - name: Create build artifacts
+        run: |
+          SANITIZED_BOARD_NAME=$(echo ${{ matrix.board }} | tr '/' '_')
+          echo "SANITIZED_BOARD_NAME=$SANITIZED_BOARD_NAME"
+          mkdir -p ${{ env.ARTIFACTS_DIR }}
+          cp ${{ env.WEST_WORKSPACE_DIR }}/build/merged.hex ${{ env.ARTIFACTS_DIR }}/${{ env.APP_NAME }}_${{ needs.set-build-vars.outputs.APP_BUILD_VERSION }}_${{ env.SANITIZED_BOARD_NAME }}_merged.hex
+          cp ${{ env.WEST_WORKSPACE_DIR }}/build/app/zephyr/zephyr.signed.bin ${{ env.ARTIFACTS_DIR }}/${{ env.APP_NAME }}_${{ needs.set-build-vars.outputs.APP_BUILD_VERSION }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.signed.bin
+          cp ${{ env.WEST_WORKSPACE_DIR }}/build/app/zephyr/zephyr.elf ${{ env.ARTIFACTS_DIR }}/${{ env.APP_NAME }}_${{ needs.set-build-vars.outputs.APP_BUILD_VERSION }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.elf
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build_artifacts_${{ github.run_id }}_${{ env.SANITIZED_BOARD_NAME }}
+          path: ${{ env.ARTIFACTS_DIR }}

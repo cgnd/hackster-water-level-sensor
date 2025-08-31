@@ -1,0 +1,38 @@
+# Copyright (c) 2025 Common Ground Electronics <https://cgnd.dev>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Release
+
+on:
+  workflow_dispatch:
+
+env:
+  ARTIFACTS_DIR: artifacts
+
+jobs:
+  build-firmware:
+    uses: ./.github/workflows/build-firmware.yml
+
+  github-release:
+    name: Create GitHub Release
+    needs: build-firmware
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ env.ARTIFACTS_DIR }}
+          merge-multiple: true
+
+      - name: List downloaded artifacts
+        run: ls -R ${{ env.ARTIFACTS_DIR }}
+
+      - name: Create draft release
+        run: gh release create --draft --verify-tag --fail-on-no-commits --title ${{ needs.set-build-vars.outputs.APP_BUILD_VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts to release
+        run: gh release upload --clobber ${{ needs.set-build-vars.outputs.APP_BUILD_VERSION }} ${{ env.ARTIFACTS_DIR }}/*.*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
