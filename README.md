@@ -4,6 +4,8 @@
 
 # Hackster Water Level Sensor
 
+[![Build Firmware](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/build-firmware.yml/badge.svg?branch=main)](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/build-firmware.yml)
+
 This firmware was developed for use in the [Off-grid Cellular Water Level Monitor](https://www.hackster.io/535535/off-grid-cellular-water-level-monitor-164868) project submitted to the [Unveil the Unseen with Nordic Semiconductor](https://www.hackster.io/contests/remotedeployement) Hackster contest.
 
 This firmware and the corresponding Golioth cloud configuration are documented separately from the main project in the [Remote water level monitoring firmware for Thingy:91 X](https://www.hackster.io/535995/cellular-water-level-sensor-firmware-for-thingy-91-x-b46700) project.
@@ -76,7 +78,7 @@ This application includes the ability to perform Over-the-Air (OTA) firmware upd
 
 > [!NOTE]
 >
-> If a newer release is available than what your device is currently running, you may download the pre-compiled binary that ends in `_update.bin` and use it in step 2 below.
+> If a newer release is available than what your device is currently running, you may [download the pre-compiled binary](https://github.com/cgnd/hackster-water-level-sensor/releases) that ends in `_zephyr.signed.bin` and use it in step 2 below.
 
 1.  Update the version number in the `VERSION` file and perform a pristine (`-p`) build to incorporate the version change.
 2.  Upload the `build/app/zephyr/zephyr.signed.bin` file as a Package in your Golioth project.
@@ -155,7 +157,7 @@ source deps/zephyr/zephyr-env.sh
 >
 > To automatically start the NCS toolchain environment when entering the project workspace, check out [this article on Hackster.io](https://www.hackster.io/cdwilson/automatically-activate-zephyr-build-environments-with-direnv-65af9c).
 
-## Building the application
+## Building the firmware locally
 
 Prior to building, update the `VERSION` file to reflect the firmware version number you want to assign to this build. Then run the following commands to build and program the firmware onto the device.
 
@@ -170,6 +172,31 @@ cd ~/hackster-water-level-sensor/app
 west build -p -b thingy91x/nrf9151/ns --sysbuild
 west flash --erase
 ```
+
+## Building and releasing firmware on GitHub
+
+This project uses [GitHub Actions](https://docs.github.com/en/actions) to automatically build the firmware on pull requests or pushes to the `main` branch of the repository. The latest firmware build can be downloaded from the latest run of the [Build Firmware](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/build-firmware.yml) workflow.
+
+### Release Process
+
+The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow is used to automatically build the release firmware and upload it to a draft release. The draft release can be edited to include release notes before the release is finalized.
+
+> [!IMPORTANT]
+>
+> The release workflow requires the release commit to be tagged with an annotated tag.
+
+1. Create a release branch (`git checkout -b release-v1.2.3`)
+2. Update [VERSION](VERSION) to reflect the release version
+3. Update [CHANGELOG.md](CHANGELOG.md) with the release notes, version, and date
+4. Create a release commit (`git commit -m "Release v1.2.3"`)
+5. Push the release branch to GitHub and create a PR, e.g. titled "Release v1.2.3"
+6. Ensure the GitHub actions workflows completed successfully
+7. Rebase and merge the PR
+8. Tag the release commit (`git tag -s -a v1.2.3 -m "Release v1.2.3"`)
+9. Push the release tag to the remote (`git push --tags`)
+10. Run the [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow with the release tag to create a draft release
+11. Copy the release notes from [CHANGELOG.md](CHANGELOG.md) into the draft release
+12. Publish the release.
 
 ## Provision the device
 
