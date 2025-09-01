@@ -1,7 +1,7 @@
 # Copyright (c) 2025 Common Ground Electronics <https://cgnd.dev>
 # SPDX-License-Identifier: Apache-2.0
 
-# https://docs.golioth.io/data-routing/examples/lightdb-stream-cbor
+# https://docs.golioth.io/data-routing/examples/influxdb-cbor
 
 filter:
   path: "*"
@@ -11,10 +11,11 @@ steps:
     transformer:
       type: cbor-to-json
       version: v1
-  - name: step-1
-    transformer:
-      type: inject-path
-      version: v1
     destination:
-      type: lightdb-stream
+      type: influxdb
       version: v1
+      parameters:
+        url: https://us-east-1-1.aws.cloud2.influxdata.com
+        token: $INFLUXDB_TOKEN
+        bucket: hackster_water_level_monitor
+        measurement: sensor
