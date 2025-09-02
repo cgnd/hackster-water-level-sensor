@@ -10,13 +10,13 @@ env:
   ARTIFACTS_DIR: artifacts
 
 jobs:
-  build-firmware:
+  build_firmware:
     uses: ./.github/workflows/build-firmware.yml
 
-  github-release:
+  github_release:
     name: Create GitHub Release
-    needs: build-firmware
-    runs-on: ubuntu-24.04
+    needs: build_firmware
+    runs-on: ubuntu-latest
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -28,11 +28,11 @@ jobs:
         run: ls -R ${{ env.ARTIFACTS_DIR }}
 
       - name: Create draft release
-        run: gh release create --draft --verify-tag --fail-on-no-commits --title ${{ needs.set-build-vars.outputs.APP_BUILD_VERSION }}
+        run: gh release create --draft --verify-tag --fail-on-no-commits --title ${{ needs.build_firmware.outputs.app_build_version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts to release
-        run: gh release upload --clobber ${{ needs.set-build-vars.outputs.APP_BUILD_VERSION }} ${{ env.ARTIFACTS_DIR }}/*.*
+        run: gh release upload --clobber ${{ needs.build_firmware.outputs.app_build_version }} ${{ env.ARTIFACTS_DIR }}/*.*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
