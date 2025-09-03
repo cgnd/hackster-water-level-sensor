@@ -98,6 +98,21 @@ jobs:
         run: |
           cd ${{ env.WEST_WORKSPACE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}
           build_version_tag=$(git describe --always)
+          # If the workflow was triggered by a tag push, use that tag as the
+          # build version tag in the case where there are multiple tags.
+          # Otherwise, default to the output of `git describe --always` when
+          # there are multiple tags or no tags.
+          current_commit=$(git rev-parse HEAD)
+          ref_tag=""
+          # Check if github.ref is a tag
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            ref_tag="${GITHUB_REF#refs/tags/}"
+            # Get the commit the tag points to
+            tag_commit=$(git rev-list -n 1 "$ref_tag")
+            if [[ "$tag_commit" == "$current_commit" ]]; then
+              build_version_tag="$ref_tag"
+            fi
+          fi
           echo "build_version_tag=$build_version_tag"
           echo "build_version_tag=$build_version_tag" >> $GITHUB_OUTPUT
           echo "BUILD_VERSION_TAG=$build_version_tag" >> $GITHUB_ENV

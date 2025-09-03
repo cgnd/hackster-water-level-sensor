@@ -5,13 +5,62 @@ name: Release
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - "**"
 
 env:
   ARTIFACTS_DIR: artifacts
 
 jobs:
+  check_release_tag:
+    name: Check Release Tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          # Creates a treeless clone to speed up the checkout
+          # https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone
+          fetch-depth: 0
+          filter: tree:0
+
+        # Tags are needed for the tag annotation check to work properly. It
+        # should be enough to run actions/checkout with `fetch-depth: 0` (or
+        # `filter: tree:0` for faster checkouts). However, when actions/checkout
+        # is triggered with an annotated tag, e.g. when the release workflow
+        # calls this with a release tag, this action will rewrite the annotated
+        # tag to be a lightweight tag. I'm not sure why it does this, but as a
+        # result, git will not find the annotated tag.
+        #
+        # See these for more details:
+        # https://github.com/actions/checkout/issues/290
+        # https://github.com/actions/checkout/pull/2200
+        #
+        # The workaround is to fetch the tags manually after the checkout step.
+        # This changes the tag from a lightweight tag back to an annotated tag
+        # so that git can find it.
+      - name: Fetch tags
+        run: |
+          git fetch --tags --force
+
+      - name: Check for release tag
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        run: |
+          if [[ ! "${{ github.ref_name }}" =~ ^v?[0-9]+(\.[0-9]+){0,2}(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Pushed tag '${{ github.ref_name }}' does not match the Zephyr app version format required by the automated release workflow. Run the release workflow manually to trigger a release with arbitrary tag names."
+            exit 1
+          fi
+      - name: Verify tag is annotated
+        run: |
+          if ! git cat-file -t ${{ github.ref_name }} | grep -q "tag"; then
+            echo "::error title=::Tag '${{ github.ref_name }}' is not an annotated tag"
+            exit 1
+          fi
+
   build_firmware:
     name: Build Firmware
+    needs: check_release_tag
     uses: ./.github/workflows/build-firmware.yml
 
   github_release:

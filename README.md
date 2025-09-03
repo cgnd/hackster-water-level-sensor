@@ -179,24 +179,23 @@ This project uses [GitHub Actions](https://docs.github.com/en/actions) to automa
 
 ### Release Process
 
-The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow is used to automatically build the release firmware and upload it to a draft release. The draft release can be edited to include release notes before the release is finalized.
+The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow is used to automatically build the release firmware and upload it to a draft release. The draft release can be edited to include release notes before the release is published.
 
 > [!IMPORTANT]
 >
-> The release workflow requires the release commit to be tagged with an annotated tag.
+> The release workflow requires the release commit to be tagged with an **annotated** tag. This is required because Zephyr sets [APP_BUILD_VERSION](https://docs.zephyrproject.org/latest/build/version/index.html#use-in-code) to the value of `git describe --abbrev=12 --always`, which does not support lightweight tags.
 
 1. Create a release branch (`git checkout -b release-v1.2.3`)
 2. Update [VERSION](VERSION) to reflect the release version
 3. Update [CHANGELOG.md](CHANGELOG.md) with the release notes, version, and date
 4. Create a release commit (`git commit -m "Release v1.2.3"`)
-5. Push the release branch to GitHub and create a PR, e.g. titled "Release v1.2.3"
-6. Ensure the GitHub actions workflows completed successfully
-7. Rebase and merge the PR
+5. Push the release branch to GitHub and create a pull request, e.g. titled "Release v1.2.3"
+7. Rebase and merge the pull request
 8. Tag the release commit (`git tag -s -a v1.2.3 -m "Release v1.2.3"`)
 9. Push the release tag to the remote (`git push --tags`)
-10. Run the [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow with the release tag to create a draft release
+10. The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow will automatically create a draft release in [Releases](https://github.com/cgnd/hackster-water-level-sensor/releases)
 11. Copy the release notes from [CHANGELOG.md](CHANGELOG.md) into the draft release
-12. Publish the release.
+12. Publish the release
 
 ## Provision the device
 
