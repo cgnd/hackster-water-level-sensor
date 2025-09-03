@@ -1,0 +1,110 @@
+# Copyright (c) 2025 Common Ground Electronics <https://cgnd.dev>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Version Info
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      nrf_toolchain_image_tag:
+        # https://github.com/nrfconnect/sdk-nrf/pkgs/container/sdk-nrf-toolchain
+        description: The sdk-nrf-toolchain image tag
+        value: ${{ jobs.set_version_info.outputs.nrf_toolchain_image_tag }}
+      build_version_tag:
+        description: The build version tag
+        value: ${{ jobs.set_version_info.outputs.build_version_tag }}
+      build_version:
+        description: The build version
+        value: ${{ jobs.set_version_info.outputs.build_version }}
+
+env:
+  NRF_RELATIVE_PATH: deps/nrf
+  PROJECT_RELATIVE_PATH: ${{ github.event.repository.name }}
+  WEST_WORKSPACE_PATH: ./west-workspace
+
+jobs:
+  set_version_info:
+    name: Set version info
+    runs-on: ubuntu-latest
+    outputs:
+      nrf_toolchain_image_tag: ${{ steps.set_nrf_toolchain_image_tag.outputs.nrf_toolchain_image_tag }}
+      build_version_tag: ${{ steps.set_build_version_tag.outputs.build_version_tag }}
+      build_version: ${{ steps.set_build_version.outputs.build_version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          path: ${{ env.WEST_WORKSPACE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}
+          # Creates a treeless clone to speed up the checkout
+          # https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone
+          fetch-depth: 0
+          filter: tree:0
+
+        # Tags are needed for `git describe` to work properly. It should be
+        # enough to run actions/checkout with `fetch-depth: 0` (or `filter:
+        # tree:0` for faster checkouts). However, when actions/checkout is
+        # triggered with an annotated tag, e.g. when the release workflow calls
+        # this with a release tag, this action will rewrite the annotated tag to
+        # be a lightweight tag. I'm not sure why it does this, but as a result,
+        # the output of `git describe` will be incorrect (it requires --tags to
+        # show lightweight tags).
+        #
+        # See these for more details:
+        # https://github.com/actions/checkout/issues/290
+        # https://github.com/actions/checkout/pull/2200
+        #
+        # The workaround is to fetch the tags manually after the checkout step.
+        # This changes the tag from a lightweight tag back to an annotated tag
+        # so that `git describe` will find it.
+      - name: Fetch tags
+        run: |
+          cd ${{ env.WEST_WORKSPACE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}
+          git fetch --tags --force
+
+      - name: Initialize minimal west workspace
+        run: |
+          python3 -m pip install west
+          cd ${{ env.WEST_WORKSPACE_PATH }}
+          west init -l ${{ env.PROJECT_RELATIVE_PATH }} --mf west-ci-bundle-id.yml
+          west update -o=--depth=1 -n
+
+      - name: Set sdk-nrf-toolchain image tag
+        id: set_nrf_toolchain_image_tag
+        # TODO: Nordic started adding the toolchain bundle ID (checksum) as a
+        # container image tag in v3.1.0. Previously, the only tag was the nrf SDK
+        # version. When the Golioth SDK upgrades to nrf v3.1.0, this should be
+        # switched over to use the toolchain bundle ID instead of the nrf
+        # version.
+        #
+        # run: |
+        #   cd ${{ env.WEST_WORKSPACE_PATH }}/${{ env.NRF_RELATIVE_PATH }}
+        #   nrf_toolchain_image_tag="$(./scripts/print_toolchain_checksum.sh)"
+        #   echo "nrf_toolchain_image_tag=$nrf_toolchain_image_tag"
+        #   echo "nrf_toolchain_image_tag=$nrf_toolchain_image_tag" >> $GITHUB_OUTPUT
+        run: |
+          cd ${{ env.WEST_WORKSPACE_PATH }}/${{ env.NRF_RELATIVE_PATH }}
+          nrf_toolchain_image_tag="v$(cat ./VERSION)"
+          echo "nrf_toolchain_image_tag=$nrf_toolchain_image_tag"
+          echo "nrf_toolchain_image_tag=$nrf_toolchain_image_tag" >> $GITHUB_OUTPUT
+
+      # NOTE: when this workflow is triggered via a pull request, the output
+      # of `git describe` on GitHub will be different from running it locally.
+      # This is because the checkout step checks out a ref like
+      # refs/remotes/pull/19/merge which includes merge commits that don't exist
+      # on the local branch.
+      - name: Set build version tag
+        id: set_build_version_tag
+        run: |
+          cd ${{ env.WEST_WORKSPACE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}
+          build_version_tag=$(git describe --always)
+          echo "build_version_tag=$build_version_tag"
+          echo "build_version_tag=$build_version_tag" >> $GITHUB_OUTPUT
+          echo "BUILD_VERSION_TAG=$build_version_tag" >> $GITHUB_ENV
+
+      - name: Set build version
+        id: set_build_version
+        run: |
+          build_version=$(echo ${{ env.BUILD_VERSION_TAG }} | sed -E 's/^v([0-9]+(\.[0-9]+){0,2}(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?)$/\1/')
+          echo "build_version=$build_version"
+          echo "build_version=$build_version" >> $GITHUB_OUTPUT
