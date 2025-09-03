@@ -11,6 +11,7 @@ env:
 
 jobs:
   build_firmware:
+    name: Build Firmware
     uses: ./.github/workflows/build-firmware.yml
 
   github_release:
@@ -18,6 +19,9 @@ jobs:
     needs: build_firmware
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
@@ -28,11 +32,11 @@ jobs:
         run: ls -R ${{ env.ARTIFACTS_DIR }}
 
       - name: Create draft release
-        run: gh release create --draft --verify-tag --fail-on-no-commits --title ${{ needs.build_firmware.outputs.app_build_version }}
+        run: gh release create --title "${{ needs.build_firmware.outputs.build_version }}" --draft --verify-tag --fail-on-no-commits ${{ needs.build_firmware.outputs.build_version_tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts to release
-        run: gh release upload --clobber ${{ needs.build_firmware.outputs.app_build_version }} ${{ env.ARTIFACTS_DIR }}/*.*
+        run: gh release upload --clobber ${{ needs.build_firmware.outputs.build_version_tag }} ${{ env.ARTIFACTS_DIR }}/*.*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
