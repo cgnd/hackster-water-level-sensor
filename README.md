@@ -10,7 +10,7 @@ This firmware was developed for use in the [Off-grid Cellular Water Level Monito
 
 This firmware and the corresponding Golioth cloud configuration are documented separately from the main project in the [Remote water level monitoring firmware for Thingy:91 X](https://www.hackster.io/535995/cellular-water-level-sensor-firmware-for-thingy-91-x-b46700) project.
 
-This firmware was originally generated from `v1.6.0` of the [Golioth Thingy91 Example Program](https://github.com/golioth/thingy91-golioth) template, which is based on  `v0.18.1` of the [Golioth Firmware SDK](https://github.com/golioth/golioth-firmware-sdk).
+This firmware was originally generated from `v1.6.0` of the [Golioth Thingy91 Example Program](https://github.com/golioth/thingy91-golioth) template, and currently uses  `v0.19.1` of the [Golioth Firmware SDK](https://github.com/golioth/golioth-firmware-sdk)).
 
 ## How it works
 
@@ -117,7 +117,7 @@ The [Golioth Firmware SDK](https://github.com/golioth/golioth-firmware-sdk) used
 
 To build this firmware, the correct version of the nRF Connect SDK toolchain needs to be installed. The nRF Connect SDK [toolchain](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/glossary.html#term-Toolchain) includes the Zephyr SDK and then adds tools and modules required to build nRF Connect SDK samples and applications on top of it.
 
-This firmware currently depends on [v0.18.1](https://github.com/golioth/golioth-firmware-sdk/releases/tag/v0.18.1) of the [golioth-firmware-sdk](https://github.com/golioth/golioth-firmware-sdk), which requires [v3.0.1](https://github.com/nrfconnect/sdk-nrf/releases/tag/v3.0.1) of the nRF Connect SDK. (The NCS version required by the Golioth SDK is defined in https://github.com/golioth/golioth-firmware-sdk/blob/main/west-ncs.yml.)
+This firmware currently depends on [v0.19.1](https://github.com/golioth/golioth-firmware-sdk/releases/tag/v0.19.1) of the [golioth-firmware-sdk](https://github.com/golioth/golioth-firmware-sdk), which requires [v3.0.1](https://github.com/nrfconnect/sdk-nrf/releases/tag/v3.0.1) of the nRF Connect SDK. (The NCS version required by the Golioth SDK is defined in https://github.com/golioth/golioth-firmware-sdk/blob/main/west-ncs.yml)
 
 Follow instructions at the following URL to install **v3.0.1** the nRF Connect SDK toolchain for your operating system:
 
@@ -125,7 +125,7 @@ https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/installation.html
 
 When you get to the step "*Get the nRF Connect SDK code*", instruct `west` to initialize this repository ***instead*** of the nRF Connect SDK (this repository will pull in NCS as a dependency).
 
-For example:
+The whole workflow looks like this:
 
 ```sh
 # Start the NCS toolchain environment
@@ -155,7 +155,7 @@ source deps/zephyr/zephyr-env.sh
 
 > [!TIP]
 >
-> To automatically start the NCS toolchain environment when entering the project workspace, check out [this article on Hackster.io](https://www.hackster.io/cdwilson/automatically-activate-zephyr-build-environments-with-direnv-65af9c).
+> To learn how to automatically start the NCS toolchain environment when entering the project workspace, check out [this repo](https://github.com/cgnd/direnv-ncs).
 
 ## Building the firmware locally
 
@@ -179,7 +179,7 @@ This project uses [GitHub Actions](https://docs.github.com/en/actions) to automa
 
 ### Release Process
 
-The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow is used to automatically build the release firmware and upload it to a draft release. The draft release can be edited to include release notes before the release is published.
+The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow is used to automatically build the release firmware and upload the files into a draft release on GitHub. The draft release can be edited to include release notes before the release is published.
 
 > [!IMPORTANT]
 >
@@ -193,7 +193,7 @@ The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workfl
 7. Rebase and merge the pull request
 8. Tag the release commit (`git tag -s -a v1.2.3 -m "Release v1.2.3"`)
 9. Push the release tag to the remote (`git push --tags`)
-10. The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow will automatically create a draft release in [Releases](https://github.com/cgnd/hackster-water-level-sensor/releases)
+10. The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow will automatically build the firmware and create a draft release in [Releases](https://github.com/cgnd/hackster-water-level-sensor/releases)
 11. Copy the release notes from [CHANGELOG.md](CHANGELOG.md) into the draft release
 12. Publish the release
 
