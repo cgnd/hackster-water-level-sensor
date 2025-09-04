@@ -10,7 +10,7 @@ This firmware was developed for use in the [Off-grid Cellular Water Level Monito
 
 This firmware and the corresponding Golioth cloud configuration are documented separately from the main project in the [Remote water level monitoring firmware for Thingy:91 X](https://www.hackster.io/535995/cellular-water-level-sensor-firmware-for-thingy-91-x-b46700) project.
 
-This firmware was originally generated from `v1.6.0` of the [Golioth Thingy91 Example Program](https://github.com/golioth/thingy91-golioth) template, and currently uses  `v0.19.1` of the [Golioth Firmware SDK](https://github.com/golioth/golioth-firmware-sdk)).
+This firmware was originally generated from `v1.6.0` of the [Golioth Thingy91 Example Program](https://github.com/golioth/thingy91-golioth) template, but has been updated to use `v0.19.1` of the [Golioth Firmware SDK](https://github.com/golioth/golioth-firmware-sdk).
 
 ## How it works
 
