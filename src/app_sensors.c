@@ -18,6 +18,7 @@
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/logging/log.h>
 
+#include "app_battery.h"
 #include "app_settings.h"
 
 LOG_MODULE_REGISTER(app_sensors, CONFIG_APP_LOG_LEVEL);
@@ -222,14 +223,56 @@ static int encode_water_level_sensor_data(zcbor_state_t *zse,
 	return 0;
 }
 
+static double json_safe_time(double value)
+{
+	if (isnan(value) || isinf(value)) {
+		return -1;
+	}
+	return value;
+}
+
+static int encode_battery_status_data(zcbor_state_t *zse, struct battery_status *battery_data)
+{
+	bool ok;
+
+	ok = zcbor_tstr_put_lit(zse, "battery") && zcbor_map_start_encode(zse, 6);
+	if (!ok) {
+		LOG_ERR("ZCBOR unable to open battery map");
+		return -1;
+	}
+
+	ok = zcbor_tstr_put_lit(zse, "voltage") &&
+	     zcbor_float64_put(zse, battery_data->voltage_v) &&
+	     zcbor_tstr_put_lit(zse, "current") &&
+	     zcbor_float64_put(zse, battery_data->current_a) && zcbor_tstr_put_lit(zse, "temp") &&
+	     zcbor_float64_put(zse, battery_data->temp_c) && zcbor_tstr_put_lit(zse, "soc") &&
+	     zcbor_float64_put(zse, battery_data->soc_pct) && zcbor_tstr_put_lit(zse, "tte") &&
+	     zcbor_float64_put(zse, json_safe_time(battery_data->tte_s)) &&
+	     zcbor_tstr_put_lit(zse, "ttf") &&
+	     zcbor_float64_put(zse, json_safe_time(battery_data->ttf_s));
+	if (!ok) {
+		LOG_ERR("ZCBOR failed to encode battery data");
+		return -1;
+	}
+
+	ok = zcbor_map_end_encode(zse, 6);
+	if (!ok) {
+		LOG_ERR("ZCBOR failed to close battery map");
+		return -1;
+	}
+
+	return 0;
+}
+
 static int encode_sensor_data(zcbor_state_t *zse, struct accel_xyz *accel_data,
 			      struct tilt_sensor *tilt_data,
-			      struct water_level_sensor *water_level_data)
+			      struct water_level_sensor *water_level_data,
+			      struct battery_status *battery_data)
 {
 	int err;
 	bool ok;
 
-	ok = zcbor_map_start_encode(zse, 3);
+	ok = zcbor_map_start_encode(zse, 4);
 	if (!ok) {
 		LOG_ERR("ZCBOR failed to open map");
 		return -1;
@@ -250,7 +293,12 @@ static int encode_sensor_data(zcbor_state_t *zse, struct accel_xyz *accel_data,
 		return -1;
 	}
 
-	ok = zcbor_map_end_encode(zse, 3);
+	err = encode_battery_status_data(zse, battery_data);
+	if (err) {
+		return -1;
+	}
+
+	ok = zcbor_map_end_encode(zse, 4);
 	if (!ok) {
 		LOG_ERR("ZCBOR failed to close map");
 		return -1;
@@ -266,10 +314,11 @@ void app_sensors_read_and_stream(void)
 	int err;
 	int accel_num_samples = get_accel_num_samples();
 	int accel_sample_delay_ms = get_accel_sample_delay_ms();
-	char cbor_buf[256];
+	char cbor_buf[512];
 	struct accel_xyz accel_sample, accel_data;
 	struct tilt_sensor tilt_data;
 	struct water_level_sensor water_level_data;
+	struct battery_status battery_data;
 
 	/* Average accelerometer samples */
 	accel_data.x = 0;
@@ -306,6 +355,9 @@ void app_sensors_read_and_stream(void)
 	calculate_tilt(&accel_data, &tilt_data);
 	calculate_water_level(&tilt_data, &water_level_data);
 
+	/* Read battery status */
+	fuel_gauge_sample(&battery_data);
+
 	LOG_INF("X: %.6f; Y: %.6f; Z: %.6f", accel_data.x, accel_data.y, accel_data.z);
 	LOG_INF("roll: %.2f°, pitch: %.2f°", rad_to_deg(tilt_data.roll_rad),
 		rad_to_deg(tilt_data.pitch_rad));
@@ -317,7 +369,8 @@ void app_sensors_read_and_stream(void)
 	if (golioth_client_is_connected(s_client)) {
 		/* Encode data as CBOR */
 		ZCBOR_STATE_E(zse, 3, cbor_buf, sizeof(cbor_buf), 1);
-		err = encode_sensor_data(zse, &accel_data, &tilt_data, &water_level_data);
+		err = encode_sensor_data(zse, &accel_data, &tilt_data, &water_level_data,
+					 &battery_data);
 		if (err) {
 			return;
 		}

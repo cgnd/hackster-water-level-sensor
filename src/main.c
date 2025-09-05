@@ -14,8 +14,9 @@
 #include <zephyr/kernel.h>
 #include <zephyr/pm/device.h>
 
-#include "app_settings.h"
+#include "app_battery.h"
 #include "app_sensors.h"
+#include "app_settings.h"
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
@@ -201,6 +202,9 @@ int main(void)
 {
 	/* Get system thread id so measurement interval changes can wake main */
 	s_system_thread = k_current_get();
+
+	/* Initialize battery monitoring */
+	app_battery_init();
 
 	/* Wait for LTE connection */
 	LOG_INF("Connecting to LTE, this may take some time...");
