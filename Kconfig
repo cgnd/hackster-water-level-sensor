@@ -33,6 +33,12 @@ config APP_GOLIOTH_CONNECT_TIMEOUT_S
 	help
 	  Timeout for connecting to Golioth.
 
+config APP_GOLIOTH_STREAM_TIMEOUT_S
+	int "Golioth stream timeout (in seconds)"
+	default 30
+	help
+	  Timeout for sending stream requests to Golioth.
+
 source "subsys/logging/Kconfig.template.log_config"
 
 if DNS_RESOLVER
