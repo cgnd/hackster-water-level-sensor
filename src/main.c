@@ -32,7 +32,9 @@ static const char *s_current_version =
 	STRINGIFY(APP_VERSION_MAJOR) "." STRINGIFY(APP_VERSION_MINOR) "." STRINGIFY(APP_PATCHLEVEL);
 static struct golioth_client *s_client;
 static k_tid_t s_system_thread;
+#if defined(CONFIG_PM_DEVICE)
 static const struct device *const s_flash_ext_dev = DEVICE_DT_GET(DT_ALIAS(spi_flash0));
+#endif
 
 K_SEM_DEFINE(lte_connected_sem, 0, 1);
 K_SEM_DEFINE(golioth_ota_sem, 0, 1);
@@ -42,6 +44,7 @@ void wake_system_thread(void)
 	k_wakeup(s_system_thread);
 }
 
+#if defined(CONFIG_PM_DEVICE)
 static void spi_flash_suspend(void)
 {
 	if (device_is_ready(s_flash_ext_dev)) {
@@ -57,6 +60,7 @@ static void spi_flash_resume(void)
 		pm_device_action_run(s_flash_ext_dev, PM_DEVICE_ACTION_RESUME);
 	}
 }
+#endif
 
 static void on_client_event(struct golioth_client *client, enum golioth_client_event event,
 			    void *arg)
@@ -215,8 +219,10 @@ int main(void)
 	golioth_client_init();
 
 	while (true) {
+#if defined(CONFIG_PM_DEVICE)
 		/* Turn on external SPI flash so it can be used for OTA */
 		spi_flash_resume();
+#endif
 
 		/*
 		 * The connection to Golioth will be dropped when the LTE link
@@ -247,8 +253,10 @@ int main(void)
 			/* Only stop the client when OTA is in the idle state */
 			golioth_client_stop(s_client);
 
+#if defined(CONFIG_PM_DEVICE)
 			/* Suspend external flash to save power */
 			spi_flash_suspend();
+#endif
 		}
 
 		k_sleep(K_SECONDS(get_stream_delay_s()));
