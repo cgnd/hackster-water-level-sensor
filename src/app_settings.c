@@ -55,7 +55,7 @@ void app_settings_invalidate(void)
 
 bool app_settings_wait_for_updates(void)
 {
-	int ret;
+	int err;
 
 	if (app_settings_are_valid()) {
 		LOG_INF("Settings are up to date");
@@ -63,11 +63,11 @@ bool app_settings_wait_for_updates(void)
 	}
 
 	LOG_INF("Waiting for updated settings...");
-	ret = k_sem_take(&settings_valid_sem, K_FOREVER);
-	if (ret == -EAGAIN) {
+	err = k_sem_take(&settings_valid_sem, K_FOREVER);
+	if (err == -EAGAIN) {
 		LOG_ERR("Settings were invalidated while waiting for updates");
 		return false;
-	} else if (ret == -EBUSY) {
+	} else if (err == -EBUSY) {
 		LOG_ERR("Unable to wait for updated settings");
 		return false;
 	} else {
