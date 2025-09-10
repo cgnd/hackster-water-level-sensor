@@ -45,17 +45,6 @@ void app_sensors_init(struct golioth_client *client)
 	s_client = client;
 }
 
-/* Callback for LightDB Stream */
-static void async_error_handler(struct golioth_client *client, enum golioth_status status,
-				const struct golioth_coap_rsp_code *coap_rsp_code, const char *path,
-				void *arg)
-{
-	if (status != GOLIOTH_OK) {
-		LOG_ERR("Async task failed: %d", status);
-		return;
-	}
-}
-
 static inline double rad_to_deg(double rad)
 {
 	return rad * (180.0 / M_PI);
@@ -376,10 +365,18 @@ void app_sensors_read_and_stream(void)
 		}
 		size_t cbor_size = zse->payload - (const uint8_t *)cbor_buf;
 
-		/* Send to LightDB Stream on "sensor" endpoint */
-		err = golioth_stream_set_async(s_client, "sensor", GOLIOTH_CONTENT_TYPE_CBOR,
-					       cbor_buf, cbor_size, async_error_handler, NULL);
-		if (err) {
+		/*
+		 * Send to LightDB Stream on the "sensor" endpoint.
+		 * Since the client is stopped manually right after sending,
+		 * it's simplest to just use the sync stream variant to block
+		 * until a response is received or a timeout occurs (if async is
+		 * used, the client needs to be kept running until a response is
+		 * received).
+		 */
+		err = golioth_stream_set_sync(s_client, "sensor", GOLIOTH_CONTENT_TYPE_CBOR,
+					      cbor_buf, cbor_size,
+					      CONFIG_APP_GOLIOTH_STREAM_TIMEOUT_S);
+		if (err != GOLIOTH_OK) {
 			LOG_ERR("Failed to send sensor data to Golioth: %d", err);
 		} else {
 			LOG_INF("Sent sensor data to Golioth");
