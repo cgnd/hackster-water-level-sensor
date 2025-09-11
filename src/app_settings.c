@@ -63,9 +63,9 @@ bool app_settings_wait_for_updates(void)
 	}
 
 	LOG_INF("Waiting for updated settings...");
-	err = k_sem_take(&settings_valid_sem, K_FOREVER);
+	err = k_sem_take(&settings_valid_sem, K_MSEC(CONFIG_APP_GOLIOTH_SETTINGS_TIMEOUT_MS));
 	if (err == -EAGAIN) {
-		LOG_ERR("Settings were invalidated while waiting for updates");
+		LOG_ERR("Timeout (or semaphore reset) while waiting for updated settings");
 		return false;
 	} else if (err == -EBUSY) {
 		LOG_ERR("Unable to wait for updated settings");

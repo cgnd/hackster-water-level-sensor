@@ -33,6 +33,12 @@ config APP_GOLIOTH_CONNECT_TIMEOUT_MS
 	help
 	  Timeout for connecting to Golioth.
 
+config APP_GOLIOTH_SETTINGS_TIMEOUT_MS
+	int "Golioth settings timeout (in milliseconds)"
+	default 30000
+	help
+	  Timeout for receiving settings from Golioth.
+
 config APP_GOLIOTH_STREAM_TIMEOUT_S
 	int "Golioth stream timeout (in seconds)"
 	default 30
