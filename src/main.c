@@ -242,11 +242,14 @@ int main(void)
 		}
 
 		LOG_INF("Waiting for connection to Golioth...");
-		golioth_client_wait_for_connect(s_client, CONFIG_APP_GOLIOTH_CONNECT_TIMEOUT_MS);
-
-		/* Only stream sensor data if settings have been received */
-		if (app_settings_wait_for_updates()) {
-			app_sensors_read_and_stream();
+		if (golioth_client_wait_for_connect(s_client,
+						    CONFIG_APP_GOLIOTH_CONNECT_TIMEOUT_MS)) {
+			/* Only stream sensor data if settings are valid */
+			if (app_settings_wait_for_updates()) {
+				app_sensors_read_and_stream();
+			}
+		} else {
+			LOG_ERR("Failed to connect to Golioth");
 		}
 
 		if (k_sem_count_get(&golioth_ota_sem) == 0) {
