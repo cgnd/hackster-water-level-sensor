@@ -242,7 +242,7 @@ int main(void)
 		}
 
 		LOG_INF("Waiting for connection to Golioth...");
-		golioth_client_wait_for_connect(s_client, CONFIG_APP_GOLIOTH_CONNECT_TIMEOUT_S);
+		golioth_client_wait_for_connect(s_client, CONFIG_APP_GOLIOTH_CONNECT_TIMEOUT_MS);
 
 		/* Only stream sensor data if settings have been received */
 		if (app_settings_wait_for_updates()) {
