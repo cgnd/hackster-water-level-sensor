@@ -88,3 +88,4 @@ jobs:
         with:
           name: artifacts_${{ github.run_id }}_${{ env.SANITIZED_BOARD_NAME }}
           path: ${{ env.ARTIFACTS_PATH }}
+          if-no-files-found: error
