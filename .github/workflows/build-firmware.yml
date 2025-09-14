@@ -63,14 +63,14 @@ jobs:
           path: ${{ env.WEST_WORKSPACE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}
 
       - name: Initialize west workspace
+        working-directory: ${{ env.WEST_WORKSPACE_PATH }}
         run: |
-          cd ${{ env.WEST_WORKSPACE_PATH }}
           west init -l ${{ env.PROJECT_RELATIVE_PATH }}
           west update -o=--depth=1 -n
 
       - name: Build firmware
+        working-directory: ${{ env.WEST_WORKSPACE_PATH }}
         run: |
-          cd ${{ env.WEST_WORKSPACE_PATH }}
           west build -b ${{ matrix.board }} --pristine=always --sysbuild ${{ env.PROJECT_RELATIVE_PATH }}
 
       - name: Create build artifacts
