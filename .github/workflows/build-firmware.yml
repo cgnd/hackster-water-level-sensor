@@ -78,6 +78,7 @@ jobs:
           SANITIZED_BOARD_NAME=$(echo ${{ matrix.board }} | tr '/' '_')
           echo "SANITIZED_BOARD_NAME=$SANITIZED_BOARD_NAME"
           mkdir -p ${{ env.ARTIFACTS_PATH }}
+          cp ${{ env.WEST_WORKSPACE_PATH }}/build/dfu_application.zip ${{ env.ARTIFACTS_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_dfu_application.zip
           cp ${{ env.WEST_WORKSPACE_PATH }}/build/merged.hex ${{ env.ARTIFACTS_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_merged.hex
           cp ${{ env.WEST_WORKSPACE_PATH }}/build/${{ env.PROJECT_RELATIVE_PATH }}/zephyr/zephyr.elf ${{ env.ARTIFACTS_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.elf
           cp ${{ env.WEST_WORKSPACE_PATH }}/build/${{ env.PROJECT_RELATIVE_PATH }}/zephyr/zephyr.hex ${{ env.ARTIFACTS_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.hex
