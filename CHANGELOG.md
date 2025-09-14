@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Add partition manager report to build artifacts
 - Add Zephyr app binary `zephyr.bin` to build artifacts
 - Add `zephyr.signed.hex` to build artifacts
 - Add Zephyr app's `.config` to build artifacts
