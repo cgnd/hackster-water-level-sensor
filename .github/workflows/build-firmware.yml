@@ -28,7 +28,7 @@ on:
         value: ${{ jobs.set_version_info.outputs.build_version }}
 
 env:
-  ARTIFACTS_PATH: ./artifacts
+  ARTIFACTS_RELATIVE_PATH: artifacts
   PROJECT_RELATIVE_PATH: ${{ github.event.repository.name }}
   WEST_WORKSPACE_PATH: ./west-workspace
 
@@ -74,20 +74,28 @@ jobs:
           west build -b ${{ matrix.board }} --pristine=always --sysbuild ${{ env.PROJECT_RELATIVE_PATH }}
 
       - name: Create build artifacts
+        working-directory: ${{ env.WEST_WORKSPACE_PATH }}/build
         run: |
-          mkdir -p ${{ env.ARTIFACTS_PATH }}
-          cp ${{ env.WEST_WORKSPACE_PATH }}/build/${{ env.PROJECT_RELATIVE_PATH }}/zephyr/.config ${{ env.ARTIFACTS_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}.config
-          cp ${{ env.WEST_WORKSPACE_PATH }}/build/dfu_application.zip ${{ env.ARTIFACTS_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_dfu_application.zip
-          cp ${{ env.WEST_WORKSPACE_PATH }}/build/merged.hex ${{ env.ARTIFACTS_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_merged.hex
-          cp ${{ env.WEST_WORKSPACE_PATH }}/build/${{ env.PROJECT_RELATIVE_PATH }}/zephyr/zephyr.bin ${{ env.ARTIFACTS_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.bin
-          cp ${{ env.WEST_WORKSPACE_PATH }}/build/${{ env.PROJECT_RELATIVE_PATH }}/zephyr/zephyr.elf ${{ env.ARTIFACTS_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.elf
-          cp ${{ env.WEST_WORKSPACE_PATH }}/build/${{ env.PROJECT_RELATIVE_PATH }}/zephyr/zephyr.hex ${{ env.ARTIFACTS_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.hex
-          cp ${{ env.WEST_WORKSPACE_PATH }}/build/${{ env.PROJECT_RELATIVE_PATH }}/zephyr/zephyr.signed.bin ${{ env.ARTIFACTS_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.signed.bin
-          cp ${{ env.WEST_WORKSPACE_PATH }}/build/${{ env.PROJECT_RELATIVE_PATH }}/zephyr/zephyr.signed.hex ${{ env.ARTIFACTS_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.signed.hex
+          mkdir -p ${{ env.ARTIFACTS_RELATIVE_PATH }}
+          cp ${{ env.PROJECT_RELATIVE_PATH }}/zephyr/.config ${{ env.ARTIFACTS_RELATIVE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}.config
+          cp dfu_application.zip ${{ env.ARTIFACTS_RELATIVE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_dfu_application.zip
+          cp merged.hex ${{ env.ARTIFACTS_RELATIVE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_merged.hex
+          cp ${{ env.PROJECT_RELATIVE_PATH }}/zephyr/zephyr.bin ${{ env.ARTIFACTS_RELATIVE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.bin
+          cp ${{ env.PROJECT_RELATIVE_PATH }}/zephyr/zephyr.elf ${{ env.ARTIFACTS_RELATIVE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.elf
+          cp ${{ env.PROJECT_RELATIVE_PATH }}/zephyr/zephyr.hex ${{ env.ARTIFACTS_RELATIVE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.hex
+          cp ${{ env.PROJECT_RELATIVE_PATH }}/zephyr/zephyr.signed.bin ${{ env.ARTIFACTS_RELATIVE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.signed.bin
+          cp ${{ env.PROJECT_RELATIVE_PATH }}/zephyr/zephyr.signed.hex ${{ env.ARTIFACTS_RELATIVE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_zephyr.signed.hex
+
+      - name: Create partition manager report
+        working-directory: ${{ env.WEST_WORKSPACE_PATH }}/build
+        run: |
+          ninja partition_manager_report
+          ninja partition_manager_report > ${{ env.ARTIFACTS_RELATIVE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_pm_report.txt
+          sed -i '1d' ${{ env.ARTIFACTS_RELATIVE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_pm_report.txt
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifacts_${{ github.run_id }}_${{ env.SANITIZED_BOARD_NAME }}
-          path: ${{ env.ARTIFACTS_PATH }}
+          path: ${{ env.WEST_WORKSPACE_PATH }}/build/${{ env.ARTIFACTS_RELATIVE_PATH }}
           if-no-files-found: error
