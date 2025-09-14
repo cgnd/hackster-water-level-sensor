@@ -58,18 +58,19 @@ jobs:
         # This changes the tag from a lightweight tag back to an annotated tag
         # so that `git describe` will find it.
       - name: Fetch tags
+        working-directory: ${{ env.WEST_WORKSPACE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}
         run: |
-          cd ${{ env.WEST_WORKSPACE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}
           git fetch --tags --force
 
       - name: Initialize minimal west workspace
+        working-directory: ${{ env.WEST_WORKSPACE_PATH }}
         run: |
           python3 -m pip install west
-          cd ${{ env.WEST_WORKSPACE_PATH }}
           west init -l ${{ env.PROJECT_RELATIVE_PATH }} --mf west-ci-bundle-id.yml
           west update -o=--depth=1 -n
 
       - name: Set sdk-nrf-toolchain image tag
+        working-directory: ${{ env.WEST_WORKSPACE_PATH }}/${{ env.NRF_RELATIVE_PATH }}
         id: set_nrf_toolchain_image_tag
         # TODO: Nordic started adding the toolchain bundle ID (checksum) as a
         # container image tag in v3.1.0. Previously, the only tag was the nrf SDK
@@ -78,12 +79,10 @@ jobs:
         # version.
         #
         # run: |
-        #   cd ${{ env.WEST_WORKSPACE_PATH }}/${{ env.NRF_RELATIVE_PATH }}
         #   nrf_toolchain_image_tag="$(./scripts/print_toolchain_checksum.sh)"
         #   echo "nrf_toolchain_image_tag=$nrf_toolchain_image_tag"
         #   echo "nrf_toolchain_image_tag=$nrf_toolchain_image_tag" >> $GITHUB_OUTPUT
         run: |
-          cd ${{ env.WEST_WORKSPACE_PATH }}/${{ env.NRF_RELATIVE_PATH }}
           nrf_toolchain_image_tag="v$(cat ./VERSION)"
           echo "nrf_toolchain_image_tag=$nrf_toolchain_image_tag"
           echo "nrf_toolchain_image_tag=$nrf_toolchain_image_tag" >> $GITHUB_OUTPUT
@@ -94,9 +93,9 @@ jobs:
       # refs/remotes/pull/19/merge which includes merge commits that don't exist
       # on the local branch.
       - name: Set build version tag
+        working-directory: ${{ env.WEST_WORKSPACE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}
         id: set_build_version_tag
         run: |
-          cd ${{ env.WEST_WORKSPACE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}
           build_version_tag=$(git describe --always)
           # If the workflow was triggered by a tag push, use that tag as the
           # build version tag in the case where there are multiple tags.
