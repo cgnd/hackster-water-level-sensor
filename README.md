@@ -103,6 +103,70 @@ When sending stream data, you must enable a pipeline in your Golioth project to 
 
 All data streamed to Golioth in CBOR format will now be routed to LightDB Stream and may be viewed using the web console. You may change this behavior at any time without updating firmware simply by editing this pipeline entry.
 
+## Programming the firmware
+
+Brand new Thingy:91 X devices must be initially programmed with multiple firmware images.
+
+> [!NOTE]
+>
+> The Connectivity Bridge and modem firmware only need to be programmed once. The application firmware can be upgraded in the future without affecting the other firmware images.
+
+### Flashing the Connectivity Bridge firmware
+
+The Thingy:91 X has an onboard nRF5340 that needs to be programmed with the [Connectivity Bridge](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/applications/connectivity_bridge/README.html) firmware from Nordic.
+
+Follow the [Updating the firmware on the nRF5340 SoC](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/app_dev/device_guides/thingy91x/thingy91x_updating_fw_programmer.html#updating_the_firmware_on_the_nrf5340_soc) guide from Nordic to program the Connectivity Bridge firmware on the nRF5340.
+
+> [!IMPORTANT]
+>
+> When following the guide linked above, make sure to download and flash the pre-compiled Connectivity Bridge firmware binaries from the [v3.0.0](https://github.com/hello-nrfcloud/firmware/releases/tag/v3.0.0) release or later of the `hello-nrfcloud/firmware` project. Previous versions have a [bug](https://github.com/cgnd/hackster-water-level-sensor/issues/2) that results in garbled serial output on the USB-to-UART port).
+
+### Flashing the modem firmware
+
+This application was tested using the [mfw_nrf91x1_2.0.2.zip](https://nsscprodmedia.blob.core.windows.net/prod/software-and-other-downloads/sip/nrf91x1-sip/nrf91x1-lte-modem-firmware/mfw_nrf91x1_2.0.2.zip) modem firmware.
+
+Follow the [Updating the modem firmware on the nRF9151 SiP](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/app_dev/device_guides/thingy91x/thingy91x_updating_fw_programmer.html#updating_the_modem_firmware_on_the_nrf9151_sip) guide from Nordic to update the modem firmware.
+
+### Flashing the application firmware
+
+The latest application firmware can be downloaded from:
+
+https://github.com/cgnd/hackster-water-level-sensor/releases/latest
+
+Follow the Updating the application firmware on the nRF9151 SiP guide from Nordic to update the application firmware.
+
+## Provision the device credentials
+
+The application firmware requires the PSK credentials to be programmed into the nRF9151 secure credential storage. The easiest way to do this is to use the Certificate Manager GUI built into the Cellular Monitor app provided by the nRF Connect for Desktop software.
+
+The Cellular Monitor app communicates with the device via AT commands. Luckily, Nordic provides an `at_client` app that is compatible with the Cellular Monitor. Flash this firmware onto the Thingy:91 X using the commands below.
+
+```sh
+cd ~/hackster-water-level-sensor/
+west build -p -b thingy91x/nrf9151/ns --sysbuild deps/nrf/samples/cellular/at_client/
+west flash --erase
+```
+
+Next, open the Cellular Monitor app.
+
+![](assets/nrf_connect_for_desktop_cellular_monitor.png)
+
+Open the CERTIFICATE MANAGER tab in the Cellular Monitor app and select the Thingy:91 X device from the top left.
+
+Provide the [PSK-ID and PSK for the device](https://docs.golioth.io/device-management/authentication/psk-auth) from the Device Credentials tab in the Golioth Console. Note that the PSK value from the Golioth Console must be [converted from a string to hex](https://codebeautify.org/string-hex-converter) before writing it to the device.
+
+Finally, set the security tag to match the value of `GOLIOTH_COAP_CLIENT_CREDENTIALS_TAG` (i.e. `515765868`) and click the "Update certificate" button.
+
+![](assets/cellular_monitor_certificate_manager.png)
+
+Use the Serial Terminal app to verify the certificate was programmed correctly.
+
+![](assets/nrf_connect_for_desktop_serial_terminal.png)
+
+Run the `AT%CMNG=1` command in the Terminal screen to list all stored certificates. There should be two entries matching the security tag that was specified. If there is only one entry, press the "Update certificates" button again in the certificate manager window.
+
+![](assets/serial_terminal_certificates_flashed.png)
+
 ## Development environment set up
 
 > [!IMPORTANT]
@@ -157,7 +221,7 @@ source deps/zephyr/zephyr-env.sh
 >
 > To learn how to automatically start the NCS toolchain environment when entering the project workspace, check out [this repo](https://github.com/cgnd/direnv-ncs).
 
-## Building the firmware locally
+## Building & flashing the firmware locally
 
 Prior to building, update the `VERSION` file to reflect the firmware version number you want to assign to this build. Then run the following commands to build and program the firmware onto the device.
 
@@ -165,69 +229,20 @@ Prior to building, update the `VERSION` file to reflect the firmware version num
 >
 > You must perform a pristine build (use `-p` or remove the `build` directory) after changing the firmware version number in the `VERSION` file for the change to take effect.
 
-### Build the firmware for the Thingy:91 X
+### Building the firmware for the Thingy:91 X
 
 ``` text
 cd ~/hackster-water-level-sensor/app
 west build -p -b thingy91x/nrf9151/ns --sysbuild
-west flash --erase
 ```
 
-## Building and releasing firmware on GitHub
+### Flashing the firmware
 
-This project uses [GitHub Actions](https://docs.github.com/en/actions) to automatically build the firmware on pull requests or pushes to the `main` branch of the repository. The latest firmware build can be downloaded from the latest run of the [Build Firmware](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/build-firmware.yml) workflow.
-
-### Release Process
-
-The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow is used to automatically build the release firmware and upload the files into a draft release on GitHub. The draft release can be edited to include release notes before the release is published.
-
-> [!IMPORTANT]
->
-> The release workflow requires the release commit to be tagged with an **annotated** tag. This is required because Zephyr sets [APP_BUILD_VERSION](https://docs.zephyrproject.org/latest/build/version/index.html#use-in-code) to the value of `git describe --abbrev=12 --always`, which does not support lightweight tags.
-
-1. Create a release branch (`git checkout -b release-v1.2.3`)
-2. Update [VERSION](VERSION) to reflect the release version
-3. Update [CHANGELOG.md](CHANGELOG.md) with the release notes, version, and date
-4. Create a release commit (`git commit -m "Release v1.2.3"`)
-5. Push the release branch to GitHub and create a pull request, e.g. titled "Release v1.2.3"
-7. Rebase and merge the pull request
-8. Tag the release commit (`git tag -s -a v1.2.3 -m "Release v1.2.3"`)
-9. Push the release tag to the remote (`git push --tags`)
-10. The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow will automatically build the firmware and create a draft release in [Releases](https://github.com/cgnd/hackster-water-level-sensor/releases)
-11. Copy the release notes from [CHANGELOG.md](CHANGELOG.md) into the draft release
-12. Publish the release
-
-## Provision the device
-
-The firmware requires the PSK credentials to be programmed into the nRF9151 secure credential storage. The easiest way to do this is to use the Certificate Manager GUI built into the Cellular Monitor app provided by the nRF Connect for Desktop software.
-
-The Cellular Monitor app communicates with the device via AT commands. Luckily, Nordic provides an `at_client` app that is compatible with the Cellular Monitor. Flash this firmware onto the Thingy:91 X using the commands below.
+The firmware built in the previous step can be flashed to the device via a SWD programmer (e.g. a Segger J-Link) using the following command:
 
 ```sh
-cd ~/hackster-water-level-sensor/
-west build -p -b thingy91x/nrf9151/ns --sysbuild deps/nrf/samples/cellular/at_client/
-west flash --erase
+west flash --recover
 ```
-
-Next, open the Cellular Monitor app.
-
-![](assets/nrf_connect_for_desktop_cellular_monitor.png)
-
-Open the CERTIFICATE MANAGER tab in the Cellular Monitor app and select the Thingy:91 X device from the top left.
-
-Provide the [PSK-ID and PSK for the device](https://docs.golioth.io/device-management/authentication/psk-auth) from the Device Credentials tab in the Golioth Console. Note that the PSK value from the Golioth Console must be [converted from a string to hex](https://codebeautify.org/string-hex-converter) before writing it to the device.
-
-Finally, set the security tag to match the value of `GOLIOTH_COAP_CLIENT_CREDENTIALS_TAG` (i.e. `515765868`) and click the "Update certificate" button.
-
-![](assets/cellular_monitor_certificate_manager.png)
-
-Use the Serial Terminal app to verify the certificate was programmed correctly.
-
-![](assets/nrf_connect_for_desktop_serial_terminal.png)
-
-Run the `AT%CMNG=1` command in the Terminal screen to list all stored certificates. There should be two entries matching the security tag that was specified. If there is only one entry, press the "Update certificates" button again in the certificate manager window.
-
-![](assets/serial_terminal_certificates_flashed.png)
 
 ## Kconfig Debugging Overlays
 
@@ -265,3 +280,27 @@ These overlays can be combined to enable all the debug configurations at once.
 west build -p -b thingy91x/nrf9151/ns --sysbuild --extra-conf overlay-serial-debug.conf --extra-conf overlay-golioth-logging.conf --extra-conf overlay-golioth-runtime-psk.conf
 ```
 
+## Building the release firmware on GitHub
+
+This project uses [GitHub Actions](https://docs.github.com/en/actions) to automatically build the release firmware. Pull requests or pushes to the `main` branch of the repository will also trigger development builds. The firmware artifacts from these builds can be downloaded from the [Build Firmware](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/build-firmware.yml) workflow page.
+
+### Release Process
+
+The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow is used to automatically build the release firmware and upload the files into a draft release on GitHub. The draft release can be edited to include release notes before the release is published.
+
+> [!IMPORTANT]
+>
+> The release workflow requires the release commit to be tagged with an **annotated** tag. This is required because Zephyr sets [APP_BUILD_VERSION](https://docs.zephyrproject.org/latest/build/version/index.html#use-in-code) to the value of `git describe --abbrev=12 --always`, which does not support lightweight tags.
+
+1. Create a release branch (`git checkout -b release-v1.2.3`)
+2. Update [VERSION](VERSION) to reflect the release version
+3. Update [CHANGELOG.md](CHANGELOG.md) with the release notes, version, and date
+4. Create a release commit (`git commit -m "Release v1.2.3"`)
+5. Push the release branch to GitHub and create a pull request, e.g. titled "Release v1.2.3"
+6. Rebase and merge the pull request
+7. Tag the release commit (`git tag -s -a v1.2.3 -m "Release v1.2.3"`)
+8. Push the release tag to the remote (`git push --tags`)
+9. The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow will automatically build the firmware and create a draft release in [Releases](https://github.com/cgnd/hackster-water-level-sensor/releases)
+10. Copy the release notes from [CHANGELOG.md](CHANGELOG.md) into the draft release
+11. Publish the release on GitHub
+12. Follow the instructions in [OTA Firmware Update](#ota-firmware-update) to upload the release firmware to Golioth.
