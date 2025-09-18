@@ -1,0 +1,13 @@
+version = 1
+
+[[annotations]]
+path = [
+    "README.md",
+    "CONTRIBUTING.md",
+    "CHANGELOG.md",
+    "assets/*.png",
+    "VERSION",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Common Ground Electronics <https://cgnd.dev>"
+SPDX-License-Identifier = "Apache-2.0"
