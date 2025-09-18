@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: Common Ground Electronics <https://cgnd.dev>
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# https://yamllint.readthedocs.io/en/stable/configuration.html
+
+extends: default
+
+yaml-files:
+  - "*.yaml"
+  - "*.yml"
+
+# yamllint doesn't support ignore-from-file and ignore keys simultaneously.
+# Since ignore-from-file is needed to ignore files from .gitignore, the .
+# yamlignore file lists additional files that should be ignored by yamllint.
+#
+# See https://github.com/adrienverge/yamllint/issues/783
+ignore-from-file:
+  - .gitignore
+  - .yamlignore
+
+rules:
+  braces:
+    forbid: non-empty
+  brackets:
+    forbid: non-empty
+  comments:
+    level: warning
+    min-spaces-from-content: 1 # needed for compatibility with Prettier
+  document-start:
+    present: false
+  float-values:
+    require-numeral-before-decimal: true
+  indentation:
+    spaces: 2 # must match indent_size in .editorconfig file
+  line-length: disable
+  quoted-strings:
+    required: only-when-needed
+    allow-quoted-quotes: true
+    quote-type: double

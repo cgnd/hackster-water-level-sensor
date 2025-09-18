@@ -3,7 +3,7 @@
 
 name: Release
 
-on:
+on: # yamllint disable-line rule:truthy
   workflow_dispatch:
   push:
     tags:
@@ -25,21 +25,21 @@ jobs:
           fetch-depth: 0
           filter: tree:0
 
-        # Tags are needed for the tag annotation check to work properly. It
-        # should be enough to run actions/checkout with `fetch-depth: 0` (or
-        # `filter: tree:0` for faster checkouts). However, when actions/checkout
-        # is triggered with an annotated tag, e.g. when the release workflow
-        # calls this with a release tag, this action will rewrite the annotated
-        # tag to be a lightweight tag. I'm not sure why it does this, but as a
-        # result, git will not find the annotated tag.
-        #
-        # See these for more details:
-        # https://github.com/actions/checkout/issues/290
-        # https://github.com/actions/checkout/pull/2200
-        #
-        # The workaround is to fetch the tags manually after the checkout step.
-        # This changes the tag from a lightweight tag back to an annotated tag
-        # so that git can find it.
+      # Tags are needed for the tag annotation check to work properly. It should
+      # be enough to run actions/checkout with `fetch-depth: 0` (or `filter:
+      # tree:0` for faster checkouts). However, when actions/checkout is
+      # triggered with an annotated tag, e.g. when the release workflow calls
+      # this with a release tag, this action will rewrite the annotated tag to
+      # be a lightweight tag. I'm not sure why it does this, but as a result,
+      # git will not find the annotated tag.
+      #
+      # See these for more details:
+      # https://github.com/actions/checkout/issues/290
+      # https://github.com/actions/checkout/pull/2200
+      #
+      # The workaround is to fetch the tags manually after the checkout step.
+      # This changes the tag from a lightweight tag back to an annotated tag so
+      # that git can find it.
       - name: Fetch tags
         run: |
           git fetch --tags --force

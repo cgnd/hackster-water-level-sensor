@@ -6,7 +6,7 @@
 
 name: Build Firmware
 
-on:
+on: # yamllint disable-line rule:truthy
   pull_request:
     branches:
       - main
@@ -49,7 +49,8 @@ jobs:
         shell: bash
     strategy:
       matrix:
-        board: ["thingy91x/nrf9151/ns"]
+        board:
+          - thingy91x/nrf9151/ns
     steps:
       - name: Set sanitized board name
         run: |

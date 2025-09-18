@@ -3,7 +3,7 @@
 
 name: Version Info
 
-on:
+on: # yamllint disable-line rule:truthy
   workflow_dispatch:
   workflow_call:
     outputs:
@@ -41,22 +41,22 @@ jobs:
           fetch-depth: 0
           filter: tree:0
 
-        # Tags are needed for `git describe` to work properly. It should be
-        # enough to run actions/checkout with `fetch-depth: 0` (or `filter:
-        # tree:0` for faster checkouts). However, when actions/checkout is
-        # triggered with an annotated tag, e.g. when the release workflow calls
-        # this with a release tag, this action will rewrite the annotated tag to
-        # be a lightweight tag. I'm not sure why it does this, but as a result,
-        # the output of `git describe` will be incorrect (it requires --tags to
-        # show lightweight tags).
-        #
-        # See these for more details:
-        # https://github.com/actions/checkout/issues/290
-        # https://github.com/actions/checkout/pull/2200
-        #
-        # The workaround is to fetch the tags manually after the checkout step.
-        # This changes the tag from a lightweight tag back to an annotated tag
-        # so that `git describe` will find it.
+      # Tags are needed for `git describe` to work properly. It should be enough
+      # to run actions/checkout with `fetch-depth: 0` (or `filter: tree:0` for
+      # faster checkouts). However, when actions/checkout is triggered with an
+      # annotated tag, e.g. when the release workflow calls this with a release
+      # tag, this action will rewrite the annotated tag to be a lightweight tag.
+      # I'm not sure why it does this, but as a result, the output of `git
+      # describe` will be incorrect (it requires --tags to show lightweight
+      # tags).
+      #
+      # See these for more details:
+      # https://github.com/actions/checkout/issues/290
+      # https://github.com/actions/checkout/pull/2200
+      #
+      # The workaround is to fetch the tags manually after the checkout step.
+      # This changes the tag from a lightweight tag back to an annotated tag so
+      # that `git describe` will find it.
       - name: Fetch tags
         working-directory: ${{ env.WEST_WORKSPACE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}
         run: |
