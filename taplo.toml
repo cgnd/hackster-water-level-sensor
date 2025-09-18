@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: Common Ground Electronics <https://cgnd.dev>
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# https://taplo.tamasfe.dev/configuration/formatter-options.html
+
+# IMPORTANT: The Even Better TOML extension for VS Code will not pick up changes
+# to this file unless the extension is reloaded.
+#
+# See https://github.com/tamasfe/taplo/issues/375
+#
+# An easy way to reload the extension is to:
+#   1. Navigate to the extensions's page in VS Code
+#   2. Click the "Disable" button
+#   3. Click the "Restart Extensions" button
+#   4. Click the "Enable" button
+
+[formatting]
+align_comments = true
+align_entries = false
+allowed_blank_lines = 1
+array_auto_collapse = true
+array_auto_expand = true
+array_trailing_comma = true
+column_width = 0
+compact_arrays = true
+compact_entries = false
+compact_inline_tables = false
+crlf = false
+indent_entries = false
+indent_string = "  "
+indent_tables = false
+inline_table_expand = true
+reorder_arrays = true
+reorder_keys = true
+trailing_newline = true

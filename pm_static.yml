@@ -1,3 +1,7 @@
+# Copyright (c) 2022-2023 Golioth, Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+
 EMPTY_0:
   address: 0xc000
   end_address: 0x10000

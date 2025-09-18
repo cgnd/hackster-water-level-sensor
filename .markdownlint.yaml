@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: Common Ground Electronics <https://cgnd.dev>
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# https://github.com/DavidAnson/markdownlint/blob/main/schema/.markdownlint.yaml
+
+# Default state for all rules
+default: true
+
+# Fix linting errors reported by rules that emit fix information
+fix: true
+
+# MD013/line-length Line length
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/md013.md
+MD013: false
+
+# MD045/no-alt-text Images should have alternate text (alt text)
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/md045.md
+MD045: false

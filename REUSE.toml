@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: Common Ground Electronics <https://cgnd.dev>
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# https://reuse.software/spec-3.3/#reusetoml
+
+SPDX-PackageDownloadLocation = "https://github.com/cgnd/hackster-water-level-sensor/"
+SPDX-PackageName = "hackster-water-level-sensor"
+SPDX-PackageSupplier = "Common Ground Electronics <https://cgnd.dev>"
+version = 1
+
+[[annotations]]
+SPDX-FileCopyrightText = "Common Ground Electronics <https://cgnd.dev>"
+SPDX-License-Identifier = "Apache-2.0"
+path = [
+  ".vscode/extensions.json",
+  "CHANGELOG.md",
+  "CONTRIBUTING.md",
+  "README.md",
+  "VERSION",
+  "assets/*.png",
+]
+precedence = "aggregate"

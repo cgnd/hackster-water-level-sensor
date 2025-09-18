@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: Common Ground Electronics <https://cgnd.dev>
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# https://jorisroovers.com/gitlint/latest/configuration/
+
+[general]
+# https://jorisroovers.com/gitlint/latest/configuration/general_options/#verbosity
+verbosity = 3
+
+# https://jorisroovers.github.io/gitlint/configuration/general_options/#regex-style-search
+regex-style-search=True
+
+# https://jorisroovers.com/gitlint/latest/configuration/general_options/#ignore
+ignore = body-is-missing
+
+# https://jorisroovers.com/gitlint/latest/configuration/general_options/#contrib
+contrib = contrib-body-requires-signed-off-by
+
+# https://jorisroovers.com/gitlint/latest/rules/builtin_rules/#i4-ignore-by-author-name
+[ignore-by-author-name]
+regex=dependabot
+ignore=all

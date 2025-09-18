@@ -1,16 +1,51 @@
 <!-- SPDX-FileCopyrightText: 2022-2023 Golioth, Inc. -->
+
 <!-- SPDX-FileCopyrightText: 2025 Common Ground Electronics <https://cgnd.dev> -->
+
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Hackster Water Level Sensor
 
-[![Build Firmware](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/build-firmware.yml/badge.svg?branch=main)](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/build-firmware.yml)
+[![REUSE status](https://api.reuse.software/badge/github.com/cgnd/hackster-water-level-sensor)](https://api.reuse.software/info/github.com/cgnd/hackster-water-level-sensor) [![Build Firmware](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/build-firmware.yml/badge.svg?branch=main)](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/build-firmware.yml)
 
 This firmware was developed for use in the [Off-grid Cellular Water Level Monitor](https://www.hackster.io/535535/off-grid-cellular-water-level-monitor-164868) project submitted to the [Unveil the Unseen with Nordic Semiconductor](https://www.hackster.io/contests/remotedeployement) Hackster contest.
 
 This firmware and the corresponding Golioth cloud configuration are documented separately from the main project in the [Remote water level monitoring firmware for Thingy:91 X](https://www.hackster.io/535995/cellular-water-level-sensor-firmware-for-thingy-91-x-b46700) project.
 
 This firmware was originally generated from `v1.6.0` of the [Golioth Thingy91 Example Program](https://github.com/golioth/thingy91-golioth) template, but has been updated to use `v0.19.1` of the [Golioth Firmware SDK](https://github.com/golioth/golioth-firmware-sdk).
+
+<!-- TODO: enable MD051 when https://github.com/hukkin/mdformat/issues/548 is fixed -->
+
+<!-- markdownlint-disable MD051 -->
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=6 --minlevel=1 -->
+
+- [Hackster Water Level Sensor](#hackster-water-level-sensor)
+  - [How it works](#how-it-works)
+  - [Supported Hardware](#supported-hardware)
+  - [Golioth Features](#golioth-features)
+    - [Settings Service](#settings-service)
+    - [Time-Series Stream data](#time-series-stream-data)
+    - [OTA Firmware Update](#ota-firmware-update)
+  - [Add Pipeline to Golioth](#add-pipeline-to-golioth)
+  - [Programming the firmware](#programming-the-firmware)
+    - [Flashing the Connectivity Bridge firmware](#flashing-the-connectivity-bridge-firmware)
+    - [Flashing the modem firmware](#flashing-the-modem-firmware)
+    - [Flashing the application firmware](#flashing-the-application-firmware)
+  - [Provision the device credentials](#provision-the-device-credentials)
+  - [Development environment set up](#development-environment-set-up)
+  - [Building & flashing the firmware locally](#building--flashing-the-firmware-locally)
+    - [Building the firmware for the Thingy:91 X](#building-the-firmware-for-the-thingy91-x)
+    - [Flashing the firmware](#flashing-the-firmware)
+  - [Kconfig Debugging Overlays](#kconfig-debugging-overlays)
+  - [Building the release firmware on GitHub](#building-the-release-firmware-on-github)
+    - [Release Process](#release-process)
+  - [Contributing](#contributing)
+  - [License](#license)
+
+<!-- mdformat-toc end -->
+
+<!-- markdownlint-enable MD051 -->
 
 ## How it works
 
@@ -19,31 +54,30 @@ The device uses the low-power accelerometer on the [Nordic Thingy:91 X](https://
 ![](assets/water_level_sensor_diagram.png)
 
 > [!IMPORTANT]
->
 > This initial prototype firmware makes an important assumption that the device is relatively static (water level changes very slowly over time) and is not subject to any other acceleration except the acceleration due to gravity. Any acceleration applied to the device due to waves, vibrations, etc. will result in inaccurate height calculations!
 
 ## Supported Hardware
 
--  [Nordic Thingy:91 X](https://www.nordicsemi.com/Products/Development-hardware/Nordic-Thingy-91-X)
+- [Nordic Thingy:91 X](https://www.nordicsemi.com/Products/Development-hardware/Nordic-Thingy-91-X)
 
 ## Golioth Features
 
 This app implements the following features provided by Golioth:
 
-  - [Device Settings Service](https://docs.golioth.io/firmware/golioth-firmware-sdk/device-settings-service)
-  - [Stream Client](https://docs.golioth.io/firmware/golioth-firmware-sdk/stream-client)
-  - [Over-the-Air (OTA) Firmware Upgrade](https://docs.golioth.io/firmware/golioth-firmware-sdk/firmware-upgrade/firmware-upgrade)
-  - [Backend Logging](https://docs.golioth.io/device-management/logging/)
+- [Device Settings Service](https://docs.golioth.io/firmware/golioth-firmware-sdk/device-settings-service)
+- [Stream Client](https://docs.golioth.io/firmware/golioth-firmware-sdk/stream-client)
+- [Over-the-Air (OTA) Firmware Upgrade](https://docs.golioth.io/firmware/golioth-firmware-sdk/firmware-upgrade/firmware-upgrade)
+- [Backend Logging](https://docs.golioth.io/device-management/logging/)
 
 ### Settings Service
 
 The following settings should be set in the Device Settings menu of the [Golioth Console](https://console.golioth.io).
 
-  - **`STREAM_DELAY_S`** Delay between sending water level sensor readings to Golioth. Set to an integer value (seconds). Defaults to `900` seconds (15 min).
-  - **`FLOAT_LENGTH`** The length of the float arm measured from the center of the hinge to the point where the arm touches the surface of the water. Set to a floating point value (inches). Defaults to `0`.
-  - **`FLOAT_OFFSET`** An offset value added to the measured float height. Set to a floating point value (inches). Defaults to `0`.
-  - **`ACCEL_NUM_SAMPLES`** Total number of accelerometer samples used to calculate the float angle. Set to an integer value. Defaults to `100`.
-  - **`ACCEL_SAMPLE_DELAY_MS`** Delay between reading each accelerometer sample. Set to an integer value (milliseconds). Defaults to `100`.
+- **`STREAM_DELAY_S`** Delay between sending water level sensor readings to Golioth. Set to an integer value (seconds). Defaults to `900` seconds (15 min).
+- **`FLOAT_LENGTH`** The length of the float arm measured from the center of the hinge to the point where the arm touches the surface of the water. Set to a floating point value (inches). Defaults to `0`.
+- **`FLOAT_OFFSET`** An offset value added to the measured float height. Set to a floating point value (inches). Defaults to `0`.
+- **`ACCEL_NUM_SAMPLES`** Total number of accelerometer samples used to calculate the float angle. Set to an integer value. Defaults to `100`.
+- **`ACCEL_SAMPLE_DELAY_MS`** Delay between reading each accelerometer sample. Set to an integer value (milliseconds). Defaults to `100`.
 
 ### Time-Series Stream data
 
@@ -51,7 +85,7 @@ Sensor data is sent to Golioth periodically based on the `STREAM_DELAY_S` device
 
 Below you will find sample stream data generated by this application.
 
-``` json
+```json
 {
   "sensor": {
     "accel": {
@@ -85,16 +119,15 @@ Below you will find sample stream data generated by this application.
 This application includes the ability to perform Over-the-Air (OTA) firmware updates. To do so, you need a binary compiled with a different version number than what is currently running on the device.
 
 > [!NOTE]
->
 > If a newer release is available than what your device is currently running, you may [download the pre-compiled binary](https://github.com/cgnd/hackster-water-level-sensor/releases) that ends in `_zephyr.signed.bin` and use it in step 2 below.
 
-1.  Update the version number in the `VERSION` file and perform a pristine (`-p`) build to incorporate the version change.
-2.  Upload the `build/app/zephyr/zephyr.signed.bin` file as a Package in your Golioth project.
-      - Use `thingy91x` as the package name (this package name is defined in `boards/thingy91x_nrf9151_ns.conf`).
-      - Use the same version number from step 1.
-3.  Create a Cohort for your device type (e.g. `prototypes`)
-4.  Create a Deployment for your Cohort using the package name and version number from step 2.
-5.  Devices in your Cohort will automatically upgrade to the most recently deployed firmware.
+1. Update the version number in the `VERSION` file and perform a pristine (`-p`) build to incorporate the version change.
+2. Upload the `build/app/zephyr/zephyr.signed.bin` file as a Package in your Golioth project.
+   - Use `thingy91x` as the package name (this package name is defined in `boards/thingy91x_nrf9151_ns.conf`).
+   - Use the same version number from step 1.
+3. Create a Cohort for your device type (e.g. `prototypes`)
+4. Create a Deployment for your Cohort using the package name and version number from step 2.
+5. Devices in your Cohort will automatically upgrade to the most recently deployed firmware.
 
 Visit [the Golioth Docs OTA Firmware Upgrade page](https://docs.golioth.io/firmware/golioth-firmware-sdk/firmware-upgrade/firmware-upgrade) for more info.
 
@@ -104,10 +137,10 @@ Golioth uses [Pipelines](https://docs.golioth.io/data-routing) to route stream d
 
 When sending stream data, you must enable a pipeline in your Golioth project to configure how that data is handled. Add the contents of [`pipelines/cbor-to-lightdb-with-path.yml`](pipelines/cbor-to-lightdb-with-path.yml) as a new pipeline as follows (note that this is the default pipeline for new projects and may already be present):
 
-1.  Navigate to your project on the Golioth web console.
-2.  Select `Pipelines` from the left sidebar and click the `Create` button.
-3.  Give your new pipeline a name and paste the pipeline configuration into the editor.
-4.  Click the toggle in the bottom right to enable the pipeline and then click `Create`.
+1. Navigate to your project on the Golioth web console.
+2. Select `Pipelines` from the left sidebar and click the `Create` button.
+3. Give your new pipeline a name and paste the pipeline configuration into the editor.
+4. Click the toggle in the bottom right to enable the pipeline and then click `Create`.
 
 All data streamed to Golioth in CBOR format will now be routed to LightDB Stream and may be viewed using the web console. You may change this behavior at any time without updating firmware simply by editing this pipeline entry.
 
@@ -116,7 +149,6 @@ All data streamed to Golioth in CBOR format will now be routed to LightDB Stream
 Brand new Thingy:91 X devices must be initially programmed with multiple firmware images.
 
 > [!NOTE]
->
 > The Connectivity Bridge and modem firmware only need to be programmed once. The application firmware can be upgraded in the future without affecting the other firmware images.
 
 ### Flashing the Connectivity Bridge firmware
@@ -126,7 +158,6 @@ The Thingy:91 X has an onboard nRF5340 that needs to be programmed with the [Con
 Follow the [Updating the firmware on the nRF5340 SoC](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/app_dev/device_guides/thingy91x/thingy91x_updating_fw_programmer.html#updating_the_firmware_on_the_nrf5340_soc) guide from Nordic to program the Connectivity Bridge firmware on the nRF5340.
 
 > [!IMPORTANT]
->
 > When following the guide linked above, make sure to download and flash the pre-compiled Connectivity Bridge firmware binaries from the [v3.0.0](https://github.com/hello-nrfcloud/firmware/releases/tag/v3.0.0) release or later of the `hello-nrfcloud/firmware` project. Previous versions have a [bug](https://github.com/cgnd/hackster-water-level-sensor/issues/2) that results in garbled serial output on the USB-to-UART port).
 
 ### Flashing the modem firmware
@@ -139,7 +170,7 @@ Follow the [Updating the modem firmware on the nRF9151 SiP](https://docs.nordics
 
 The latest application firmware can be downloaded from:
 
-https://github.com/cgnd/hackster-water-level-sensor/releases/latest
+<https://github.com/cgnd/hackster-water-level-sensor/releases/latest>
 
 Follow the Updating the application firmware on the nRF9151 SiP guide from Nordic to update the application firmware.
 
@@ -178,22 +209,20 @@ Run the `AT%CMNG=1` command in the Terminal screen to list all stored certificat
 ## Development environment set up
 
 > [!IMPORTANT]
->
 > Do not clone this repo using git. Zephyr's `west` meta tool should be used to set up your local workspace.
 
 The [Golioth Firmware SDK](https://github.com/golioth/golioth-firmware-sdk) used in this firmware depends on Nordic's [nRF Connect SDK](https://www.nordicsemi.com/Products/Development-software/nRF-Connect-SDK) (NCS) which integrates [Zephyr RTOS](https://www.zephyrproject.org/).
 
 > [!NOTE]
->
 > The nRF Connect SDK includes everything that is required by Zephyr’s [Getting Started Guide](https://docs.nordicsemi.com/bundle/ncs-latest/page/zephyr/develop/getting_started/index.html#getting-started) together with additional tools and Python dependencies that the nRF Connect SDK uses.
 
 To build this firmware, the correct version of the nRF Connect SDK toolchain needs to be installed. The nRF Connect SDK [toolchain](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/glossary.html#term-Toolchain) includes the Zephyr SDK and then adds tools and modules required to build nRF Connect SDK samples and applications on top of it.
 
-This firmware currently depends on [v0.19.1](https://github.com/golioth/golioth-firmware-sdk/releases/tag/v0.19.1) of the [golioth-firmware-sdk](https://github.com/golioth/golioth-firmware-sdk), which requires [v3.0.1](https://github.com/nrfconnect/sdk-nrf/releases/tag/v3.0.1) of the nRF Connect SDK. (The NCS version required by the Golioth SDK is defined in https://github.com/golioth/golioth-firmware-sdk/blob/main/west-ncs.yml)
+This firmware currently depends on [v0.19.1](https://github.com/golioth/golioth-firmware-sdk/releases/tag/v0.19.1) of the [golioth-firmware-sdk](https://github.com/golioth/golioth-firmware-sdk), which requires [v3.0.1](https://github.com/nrfconnect/sdk-nrf/releases/tag/v3.0.1) of the nRF Connect SDK. (The NCS version required by the Golioth SDK is defined in <https://github.com/golioth/golioth-firmware-sdk/blob/main/west-ncs.yml>)
 
 Follow instructions at the following URL to install **v3.0.1** the nRF Connect SDK toolchain for your operating system:
 
-https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/installation.html
+<https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/installation.html>
 
 When you get to the step "*Get the nRF Connect SDK code*", instruct `west` to initialize this repository ***instead*** of the nRF Connect SDK (this repository will pull in NCS as a dependency).
 
@@ -226,7 +255,6 @@ source deps/zephyr/zephyr-env.sh
 ```
 
 > [!TIP]
->
 > To learn how to automatically start the NCS toolchain environment when entering the project workspace, check out [this repo](https://github.com/cgnd/direnv-ncs).
 
 ## Building & flashing the firmware locally
@@ -234,12 +262,11 @@ source deps/zephyr/zephyr-env.sh
 Prior to building, update the `VERSION` file to reflect the firmware version number you want to assign to this build. Then run the following commands to build and program the firmware onto the device.
 
 > [!WARNING]
->
 > You must perform a pristine build (use `-p` or remove the `build` directory) after changing the firmware version number in the `VERSION` file for the change to take effect.
 
 ### Building the firmware for the Thingy:91 X
 
-``` text
+```text
 cd ~/hackster-water-level-sensor/app
 west build -p -b thingy91x/nrf9151/ns --sysbuild
 ```
@@ -276,7 +303,7 @@ west build -p -b thingy91x/nrf9151/ns --sysbuild --extra-conf overlay-golioth-ru
 
 Once the firmware has been flashed on the device, use the Serial Terminal app to set the PSK-ID and PSK in the Zephyr shell and reboot the device:
 
-``` text
+```text
 uart:~$ settings set golioth/psk-id <my-psk-id@my-project>
 uart:~$ settings set golioth/psk <my-psk>
 uart:~$ kernel reboot cold
@@ -297,18 +324,25 @@ This project uses [GitHub Actions](https://docs.github.com/en/actions) to automa
 The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow is used to automatically build the release firmware and upload the files into a draft release on GitHub. The draft release can be edited to include release notes before the release is published.
 
 > [!IMPORTANT]
->
 > The release workflow requires the release commit to be tagged with an **annotated** tag. This is required because Zephyr sets [APP_BUILD_VERSION](https://docs.zephyrproject.org/latest/build/version/index.html#use-in-code) to the value of `git describe --abbrev=12 --always`, which does not support lightweight tags.
 
-1. Create a release branch (`git checkout -b release-v1.2.3`)
-2. Update [VERSION](VERSION) to reflect the release version
-3. Update [CHANGELOG.md](CHANGELOG.md) with the release notes, version, and date
-4. Create a release commit (`git commit -m "Release v1.2.3"`)
-5. Push the release branch to GitHub and create a pull request, e.g. titled "Release v1.2.3"
-6. Rebase and merge the pull request
-7. Tag the release commit (`git tag -s -a v1.2.3 -m "Release v1.2.3"`)
-8. Push the release tag to the remote (`git push --tags`)
-9. The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow will automatically build the firmware and create a draft release in [Releases](https://github.com/cgnd/hackster-water-level-sensor/releases)
+01. Create a release branch (`git checkout -b release-v1.2.3`)
+02. Update [VERSION](VERSION) to reflect the release version
+03. Update [CHANGELOG.md](CHANGELOG.md) with the release notes, version, and date
+04. Create a release commit (`git commit -m "Release v1.2.3"`)
+05. Push the release branch to GitHub and create a pull request, e.g. titled "Release v1.2.3"
+06. Rebase and merge the pull request
+07. Tag the release commit (`git tag -s -a v1.2.3 -m "Release v1.2.3"`)
+08. Push the release tag to the remote (`git push --tags`)
+09. The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/release.yml) workflow will automatically build the firmware and create a draft release in [Releases](https://github.com/cgnd/hackster-water-level-sensor/releases)
 10. Copy the release notes from [CHANGELOG.md](CHANGELOG.md) into the draft release
 11. Publish the release on GitHub
 12. Follow the instructions in [OTA Firmware Update](#ota-firmware-update) to upload the release firmware to Golioth.
+
+## Contributing
+
+See the [CONTRIBUTING.md](CONTRIBUTING.md) file for project contribution guidelines.
+
+## License
+
+See the [LICENSE.md](LICENSE.md) file for project licensing information.
