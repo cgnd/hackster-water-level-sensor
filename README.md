@@ -4,6 +4,8 @@
 
 # Hackster Water Level Sensor
 
+[![REUSE status](https://api.reuse.software/badge/github.com/cgnd/hackster-water-level-sensor)](https://api.reuse.software/info/github.com/cgnd/hackster-water-level-sensor)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/cgnd/hackster-water-level-sensor/main.svg)](https://results.pre-commit.ci/latest/github/cgnd/hackster-water-level-sensor/main)
 [![Build Firmware](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/build-firmware.yml/badge.svg?branch=main)](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/build-firmware.yml)
 
 This firmware was developed for use in the [Off-grid Cellular Water Level Monitor](https://www.hackster.io/535535/off-grid-cellular-water-level-monitor-164868) project submitted to the [Unveil the Unseen with Nordic Semiconductor](https://www.hackster.io/contests/remotedeployement) Hackster contest.
@@ -312,3 +314,11 @@ The [Release](https://github.com/cgnd/hackster-water-level-sensor/actions/workfl
 10. Copy the release notes from [CHANGELOG.md](CHANGELOG.md) into the draft release
 11. Publish the release on GitHub
 12. Follow the instructions in [OTA Firmware Update](#ota-firmware-update) to upload the release firmware to Golioth.
+
+## Contributing
+
+See the [CONTRIBUTING.md](CONTRIBUTING.md) file for project contribution guidelines.
+
+## License
+
+See the [LICENSE.md](LICENSE.md) file for project licensing information.
