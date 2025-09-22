@@ -58,7 +58,7 @@ jobs:
           echo "SANITIZED_BOARD_NAME=$SANITIZED_BOARD_NAME" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           path: ${{ env.WEST_WORKSPACE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}
 
@@ -94,7 +94,7 @@ jobs:
           sed -i '1d' ${{ env.ARTIFACTS_RELATIVE_PATH }}/${{ env.PROJECT_RELATIVE_PATH }}_${{ needs.set_version_info.outputs.build_version_tag }}_${{ env.SANITIZED_BOARD_NAME }}_pm_report.txt
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: artifacts_${{ github.run_id }}_${{ env.SANITIZED_BOARD_NAME }}
           path: ${{ env.WEST_WORKSPACE_PATH }}/build/${{ env.ARTIFACTS_RELATIVE_PATH }}
