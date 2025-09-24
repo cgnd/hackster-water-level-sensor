@@ -8,11 +8,11 @@
 
 [![REUSE status](https://api.reuse.software/badge/github.com/cgnd/hackster-water-level-sensor)](https://api.reuse.software/info/github.com/cgnd/hackster-water-level-sensor) [![Build Firmware](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/build-firmware.yml/badge.svg?branch=main)](https://github.com/cgnd/hackster-water-level-sensor/actions/workflows/build-firmware.yml)
 
-This firmware was developed for use in the [Off-grid Cellular Water Level Monitor](https://www.hackster.io/535535/off-grid-cellular-water-level-monitor-164868) project submitted to the [Unveil the Unseen with Nordic Semiconductor](https://www.hackster.io/contests/remotedeployement) Hackster contest.
+This firmware was developed for use in the [Off-grid Cellular Water Level Monitor](https://www.hackster.io/535535/off-grid-cellular-water-level-monitor-164868) project by [Jeremy Cook](https://www.hackster.io/JeremyCook) submitted to the [Unveil the Unseen with Nordic Semiconductor](https://www.hackster.io/contests/remotedeployement) Hackster contest.
 
-This firmware and the corresponding Golioth cloud configuration are documented separately from the main project in the [Remote water level monitoring firmware for Thingy:91 X](https://www.hackster.io/535995/cellular-water-level-sensor-firmware-for-thingy-91-x-b46700) project.
+The cloud infrastructure configuration required for this firmware is documented separately in the [Remote water level monitoring firmware for Thingy:91 X](https://www.hackster.io/535995/cellular-water-level-sensor-firmware-for-thingy-91-x-b46700) Hackster project by [Chris Wilson](https://www.hackster.io/cdwilson). Since the [Hackster.io](https://www.hackster.io) website currently has some bugs with images on mobile and code block highlighting, a copy of the Markdown source for that project page is included in this repository at [hackster_project/story.md](hackster_project/story.md).
 
-This firmware was originally generated from `v1.6.0` of the [Golioth Thingy91 Example Program](https://github.com/golioth/thingy91-golioth) template, but has been updated to use `v0.19.1` of the [Golioth Firmware SDK](https://github.com/golioth/golioth-firmware-sdk).
+This repository was originally generated from `v1.6.0` of the [Golioth Thingy91 Example Program](https://github.com/golioth/thingy91-golioth) template, but has been updated to use `v0.19.1` of the [Golioth Firmware SDK](https://github.com/golioth/golioth-firmware-sdk).
 
 <!-- TODO: enable MD051 when https://github.com/hukkin/mdformat/issues/548 is fixed -->
 
