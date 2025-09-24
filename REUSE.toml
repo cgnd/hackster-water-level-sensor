@@ -19,5 +19,7 @@ path = [
   "README.md",
   "VERSION",
   "assets/*.png",
+  "hackster_project/*.md",
+  "hackster_project/assets/*.png",
 ]
 precedence = "aggregate"
