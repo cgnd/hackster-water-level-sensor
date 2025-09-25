@@ -86,7 +86,7 @@ All the firmware source code for this project is open-source on GitHub:
 
 <https://github.com/cgnd/hackster-water-level-sensor>
 
-If you want to try this out yourself, the [README.md](https://github.com/cgnd/hackster-water-level-sensor/blob/main/README.md) in the repo provides detailed instructions for setting up the NCS firmware development environment, building the firmware, and provisioning the device credentials.
+If you want to try this firmware out yourself, the [README.md](https://github.com/cgnd/hackster-water-level-sensor/blob/main/README.md) in the repo provides detailed instructions for programming the device with a pre-built firmware image and provisioning the device credentials for connecting to Golioth.
 
 ## Golioth Cloud Configuration
 
@@ -124,7 +124,7 @@ It's also possible to override these settings for each device. The length of the
 
 Brand new Thingy:91 X devices must be initially programmed with the firmware and provisioned with the PSK device credentials from Golioth.
 
-Plug the USB cable into the Thingy:91 X, flip the power switch to the "ON" position, and connect a JTAG/SWD programmer to the debug port on the device. Follow the instructions in the [README.md](https://github.com/cgnd/hackster-water-level-sensor/blob/main/README.md) to flash the firmware and program the PSK device credentials.
+Plug the USB cable into the Thingy:91 X, flip the power switch to the "ON" position, and connect a SWD programmer to the debug port on the device. Follow the instructions in the [README.md](https://github.com/cgnd/hackster-water-level-sensor/blob/main/README.md) to flash the firmware and program the PSK device credentials.
 
 Once the device reboots, it should automatically (and securely!) connect to Golioth and start sending water level readings to the Golioth Stream service.
 
@@ -267,11 +267,11 @@ The dashboard should now have a single visualization showing the water level as 
 
 ## Over-the-Air Firmware Updates
 
-What happens when we need to update the device firmware in the field? It's not very much fun having to disassemble the device and flash it with a JTAG programmer every time the firmware changes...
+What happens when we need to update the device firmware in the field? It's not very much fun having to disassemble the device and flash it with a SWD programmer every time the firmware changes...
 
 Golioth provides a robust Over-the-Air firmware update service which can be used to update the device firmware via the cellular network. This includes the ability to group devices into cohorts for progressively updating a fleet of devices over time.
 
-The README.md in the firmware repository [describes how to configure firmware updates](https://github.com/cgnd/hackster-water-level-sensor/tree/main?tab=readme-ov-file#ota-firmware-update) in the Golioth cloud console.
+The [README.md](https://github.com/cgnd/hackster-water-level-sensor/blob/main/README.md) in the firmware repository [describes how to configure firmware updates](https://github.com/cgnd/hackster-water-level-sensor/tree/main?tab=readme-ov-file#ota-firmware-update) in the Golioth cloud console.
 
 The first step is to create a firmware "Package" by uploading the OTA firmware binaries (ending in `zephyr.signed.bin`) downloaded from the [Releases](https://github.com/cgnd/hackster-water-level-sensor/releases) page.
 

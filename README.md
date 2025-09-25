@@ -10,7 +10,12 @@
 
 This firmware was developed for use in the [Off-grid Cellular Water Level Monitor](https://www.hackster.io/535535/off-grid-cellular-water-level-monitor-164868) project by [Jeremy Cook](https://www.hackster.io/JeremyCook) submitted to the [Unveil the Unseen with Nordic Semiconductor](https://www.hackster.io/contests/remotedeployement) Hackster contest.
 
-The cloud infrastructure configuration required for this firmware is documented separately in the [Remote water level monitoring firmware for Thingy:91 X](https://www.hackster.io/535995/cellular-water-level-sensor-firmware-for-thingy-91-x-b46700) Hackster project by [Chris Wilson](https://www.hackster.io/cdwilson). Since the [Hackster.io](https://www.hackster.io) website currently has some bugs with images on mobile and code block highlighting, a copy of the Markdown source for that project page is included in this repository at [hackster_project/story.md](hackster_project/story.md).
+![water_level_monitor_swamp](assets/water_level_monitor_swamp.png)
+
+The cloud infrastructure configuration required for this firmware is documented separately in the [Remote water level monitoring firmware for Thingy:91 X](https://www.hackster.io/535995/cellular-water-level-sensor-firmware-for-thingy-91-x-b46700) Hackster project by [Chris Wilson](https://www.hackster.io/cdwilson).
+
+> [!TIP]
+> Since the [Hackster.io](https://www.hackster.io) website currently has some bugs (e.g. loading images on mobile fails sometimes, code highlighting doesn't work, etc.), a copy of the Markdown source for the Hackster project page is included in this repository at [hackster_project/story.md](hackster_project/story.md) (it may be easier to read on GitHub).
 
 This repository was originally generated from `v1.6.0` of the [Golioth Thingy91 Example Program](https://github.com/golioth/thingy91-golioth) template, but has been updated to use `v0.19.1` of the [Golioth Firmware SDK](https://github.com/golioth/golioth-firmware-sdk).
 
@@ -28,11 +33,11 @@ This repository was originally generated from `v1.6.0` of the [Golioth Thingy91 
     - [Time-Series Stream data](#time-series-stream-data)
     - [OTA Firmware Update](#ota-firmware-update)
   - [Add Pipeline to Golioth](#add-pipeline-to-golioth)
-  - [Programming the firmware](#programming-the-firmware)
+  - [Provision the device credentials](#provision-the-device-credentials)
     - [Flashing the Connectivity Bridge firmware](#flashing-the-connectivity-bridge-firmware)
     - [Flashing the modem firmware](#flashing-the-modem-firmware)
-    - [Flashing the application firmware](#flashing-the-application-firmware)
-  - [Provision the device credentials](#provision-the-device-credentials)
+    - [Flashing the at_client firmware](#flashing-the-at_client-firmware)
+  - [Programming the firmware](#programming-the-firmware)
   - [Development environment set up](#development-environment-set-up)
   - [Building & flashing the firmware locally](#building--flashing-the-firmware-locally)
     - [Building the firmware for the Thingy:91 X](#building-the-firmware-for-the-thingy91-x)
@@ -49,9 +54,9 @@ This repository was originally generated from `v1.6.0` of the [Golioth Thingy91 
 
 ## How it works
 
-The device uses the low-power accelerometer on the [Nordic Thingy:91 X](https://www.nordicsemi.com/Products/Development-hardware/Nordic-Thingy-91-X) cellular IoT prototyping platform to measure the tilt angle `θ` of hinged float arm. The height of the float (relative to the hinge) is calculated based on the tilt angle `θ` and the length of the float arm, which is configurable at runtime via the Golioth web console setting `FLOAT_LENGTH`.
+The device uses the low-power accelerometer on the [Nordic Thingy:91 X](https://www.nordicsemi.com/Products/Development-hardware/Nordic-Thingy-91-X) cellular IoT prototyping platform to measure the pitch angle `ψ` of hinged float arm. The height of the float (relative to the hinge) is calculated based on the pitch angle `ψ` and the length of the float arm, which is configurable at runtime for each device via the Golioth web console setting `FLOAT_LENGTH`.
 
-![](assets/water_level_sensor_diagram.png)
+![](assets/water_level_sensor_float_height_diagram.png)
 
 > [!IMPORTANT]
 > This initial prototype firmware makes an important assumption that the device is relatively static (water level changes very slowly over time) and is not subject to any other acceleration except the acceleration due to gravity. Any acceleration applied to the device due to waves, vibrations, etc. will result in inaccurate height calculations!
@@ -67,7 +72,7 @@ This app implements the following features provided by Golioth:
 - [Device Settings Service](https://docs.golioth.io/firmware/golioth-firmware-sdk/device-settings-service)
 - [Stream Client](https://docs.golioth.io/firmware/golioth-firmware-sdk/stream-client)
 - [Over-the-Air (OTA) Firmware Upgrade](https://docs.golioth.io/firmware/golioth-firmware-sdk/firmware-upgrade/firmware-upgrade)
-- [Backend Logging](https://docs.golioth.io/device-management/logging/)
+- [Backend Logging](https://docs.golioth.io/device-management/logging/) (only enabled in debug configurations)
 
 ### Settings Service
 
@@ -122,9 +127,9 @@ This application includes the ability to perform Over-the-Air (OTA) firmware upd
 > If a newer release is available than what your device is currently running, you may [download the pre-compiled binary](https://github.com/cgnd/hackster-water-level-sensor/releases) that ends in `_zephyr.signed.bin` and use it in step 2 below.
 
 1. Update the version number in the `VERSION` file and perform a pristine (`-p`) build to incorporate the version change.
-2. Upload the `build/app/zephyr/zephyr.signed.bin` file as a Package in your Golioth project.
+2. Upload the `*_zephyr.signed.bin` file as a Package in your Golioth project.
    - Use `thingy91x` as the package name (this package name is defined in `boards/thingy91x_nrf9151_ns.conf`).
-   - Use the same version number from step 1.
+   - Use the same version number from step 1 (Golioth should automatically detect the version number).
 3. Create a Cohort for your device type (e.g. `prototypes`)
 4. Create a Deployment for your Cohort using the package name and version number from step 2.
 5. Devices in your Cohort will automatically upgrade to the most recently deployed firmware.
@@ -144,16 +149,18 @@ When sending stream data, you must enable a pipeline in your Golioth project to 
 
 All data streamed to Golioth in CBOR format will now be routed to LightDB Stream and may be viewed using the web console. You may change this behavior at any time without updating firmware simply by editing this pipeline entry.
 
-## Programming the firmware
+## Provision the device credentials
 
-Brand new Thingy:91 X devices must be initially programmed with multiple firmware images.
+The application firmware requires the PSK credentials generated by Golioth to be programmed into the nRF9151 secure credential storage. The easiest way to do this is to use the Certificate Manager GUI built into the Cellular Monitor app provided by the [nRF Connect for Desktop](https://www.nordicsemi.com/Products/Development-tools/nRF-Connect-for-Desktop) software.
+
+The Cellular Monitor app communicates with the device via AT commands. Nordic provides a pre-built `at_client` firmware image that is compatible with the Cellular Monitor app.
 
 > [!NOTE]
-> The Connectivity Bridge and modem firmware only need to be programmed once. The application firmware can be upgraded in the future without affecting the other firmware images.
+> The Connectivity Bridge and modem firmware below only need to be programmed once. The application firmware can be reprogrammed in the future without affecting the other firmware images.
 
 ### Flashing the Connectivity Bridge firmware
 
-The Thingy:91 X has an onboard nRF5340 that needs to be programmed with the [Connectivity Bridge](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/applications/connectivity_bridge/README.html) firmware from Nordic.
+The Thingy:91 X has an onboard [nRF5340](https://www.nordicsemi.com/Products/nRF5340) SoC that needs to be programmed with the [Connectivity Bridge](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/applications/connectivity_bridge/README.html) firmware from Nordic.
 
 Follow the [Updating the firmware on the nRF5340 SoC](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/app_dev/device_guides/thingy91x/thingy91x_updating_fw_programmer.html#updating_the_firmware_on_the_nrf5340_soc) guide from Nordic to program the Connectivity Bridge firmware on the nRF5340.
 
@@ -164,27 +171,13 @@ Follow the [Updating the firmware on the nRF5340 SoC](https://docs.nordicsemi.co
 
 This application was tested using the [mfw_nrf91x1_2.0.2.zip](https://nsscprodmedia.blob.core.windows.net/prod/software-and-other-downloads/sip/nrf91x1-sip/nrf91x1-lte-modem-firmware/mfw_nrf91x1_2.0.2.zip) modem firmware.
 
-Follow the [Updating the modem firmware on the nRF9151 SiP](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/app_dev/device_guides/thingy91x/thingy91x_updating_fw_programmer.html#updating_the_modem_firmware_on_the_nrf9151_sip) guide from Nordic to update the modem firmware.
+Follow the [Updating the modem firmware on the nRF9151 SiP](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/app_dev/device_guides/thingy91x/thingy91x_updating_fw_programmer.html#updating_the_modem_firmware_on_the_nrf9151_sip) guide from Nordic to update the modem firmware on the [nRF9151](https://www.nordicsemi.com/Products/nRF9151) SiP.
 
-### Flashing the application firmware
+### Flashing the at_client firmware
 
-The latest application firmware can be downloaded from:
+The pre-compiled `at_client` firmware is included in the [thingy91x_mfw-2.0.2_sdk-3.0.0.zip](https://nsscprodmedia.blob.core.windows.net/prod/software-and-other-downloads/dev-kits/thingy91-x/application-firmware/thingy91x_mfw-2.0.2_sdk-3.0.0.zip) package from Nordic. Make sure to program the `img_app_bl/thingy91x_at_client_2025-05-08_3bfc4657.hex` firmware when flashing the firmware.
 
-<https://github.com/cgnd/hackster-water-level-sensor/releases/latest>
-
-Follow the Updating the application firmware on the nRF9151 SiP guide from Nordic to update the application firmware.
-
-## Provision the device credentials
-
-The application firmware requires the PSK credentials to be programmed into the nRF9151 secure credential storage. The easiest way to do this is to use the Certificate Manager GUI built into the Cellular Monitor app provided by the nRF Connect for Desktop software.
-
-The Cellular Monitor app communicates with the device via AT commands. Luckily, Nordic provides an `at_client` app that is compatible with the Cellular Monitor. Flash this firmware onto the Thingy:91 X using the commands below.
-
-```sh
-cd ~/hackster-water-level-sensor/
-west build -p -b thingy91x/nrf9151/ns --sysbuild deps/nrf/samples/cellular/at_client/
-west flash --erase
-```
+Follow the [Updating the application firmware on the nRF9151 SiP](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/app_dev/device_guides/thingy91x/thingy91x_updating_fw_programmer.html#updating_the_application_firmware_on_the_nrf9151_sip) guide from Nordic to install the `at_client` firmware on the [nRF9151](https://www.nordicsemi.com/Products/nRF9151) SiP.
 
 Next, open the Cellular Monitor app.
 
@@ -206,7 +199,39 @@ Run the `AT%CMNG=1` command in the Terminal screen to list all stored certificat
 
 ![](assets/serial_terminal_certificates_flashed.png)
 
+## Programming the firmware
+
+Now that the Golioth PSK credentials have been programmed, the `at_client` firmware can be replaced with water level monitoring firmware from this project.
+
+The latest application firmware can be downloaded from the [Releases](https://github.com/cgnd/hackster-water-level-sensor/releases/latest) page in this repository.
+
+Follow the [Updating the application firmware on the nRF9151 SiP](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/app_dev/device_guides/thingy91x/thingy91x_updating_fw_programmer.html#updating_the_application_firmware_on_the_nrf9151_sip) guide from Nordic to install the firmware on the [nRF9151](https://www.nordicsemi.com/Products/nRF9151) SiP.
+
+For example, to program the `v2.5.1` firmware over USB via MCUboot (DFU), run the following commands.
+
+```sh
+nrfutil device list
+nrfutil device program \
+--firmware hackster-water-level-sensor_v2.5.1_thingy91x_nrf9151_ns_dfu_application.zip \
+--serial-number THINGY91X_3FCE94805D7 \
+--options verify=VERIFY_READ,reset=RESET_DEFAULT
+```
+
+To program the `v2.5.1` firmware via SWD through an external debug probe, run the following commands (specify `--serial-number <j-link-serial-number>` if more than one device are connected).
+
+```sh
+nrfutil device recover
+nrfutil device program \
+--firmware hackster-water-level-sensor_v2.5.1_thingy91x_nrf9151_ns_merged.hex \
+--traits jlink \
+--x-family nrf91 \
+--core Application \
+--options verify=VERIFY_READ,reset=RESET_DEFAULT
+```
+
 ## Development environment set up
+
+This section describes how to set up a local development environment for building and flashing the firmware.
 
 > [!IMPORTANT]
 > Do not clone this repo using git. Zephyr's `west` meta tool should be used to set up your local workspace.
