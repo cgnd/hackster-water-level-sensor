@@ -15,7 +15,7 @@ However, the Thingy:91 X can be used for many other applications, including incl
 
 Hackster Pro [Jeremy Cook](https://www.hackster.io/JeremyCook) set out to build a prototype of this idea. In his project, [Off-grid Cellular Water Level Monitor,](https://www.hackster.io/535535/off-grid-cellular-water-level-monitor-164868) he walks through the mechanical design and physical installation of the water level monitor prototype he built with the Thingy:91 X.
 
-![water_level_monitor_swamp.png](assets/water_level_monitor_swamp.png)
+![water_level_monitor_beach.png](assets/water_level_monitor_beach.png)
 
 Jeremy asked me to help write some prototype firmware for the Thingy:91 X to enable remote water-level monitoring. In this companion Hackster project, I'll show how I adapted the [Zephyr](https://www.zephyrproject.org/)-based [Golioth Thingy:91 example firmware](https://github.com/golioth/thingy91-golioth) to send water level measurements over the cellular network to the [Golioth Cloud](https://golioth.io/). I'll also demonstrate how I used [InfluxDB](https://www.influxdata.com/products/influxdb-cloud/serverless/) and [Grafana](https://grafana.com/grafana/) to build a dashboard to visualize the water level measurement data in real-time from anywhere in the world.
 
