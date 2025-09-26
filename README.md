@@ -10,7 +10,7 @@
 
 This firmware was developed for use in the [Off-grid Cellular Water Level Monitor](https://www.hackster.io/535535/off-grid-cellular-water-level-monitor-164868) project by [Jeremy Cook](https://www.hackster.io/JeremyCook) submitted to the [Unveil the Unseen with Nordic Semiconductor](https://www.hackster.io/contests/remotedeployement) Hackster contest.
 
-![water_level_monitor_swamp](assets/water_level_monitor_swamp.png)
+![](assets/water_level_monitor_beach.png)
 
 The cloud infrastructure configuration required for this firmware is documented separately in the [Remote water level monitoring firmware for Thingy:91 X](https://www.hackster.io/535995/cellular-water-level-sensor-firmware-for-thingy-91-x-b46700) Hackster project by [Chris Wilson](https://www.hackster.io/cdwilson).
 
